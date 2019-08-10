@@ -642,6 +642,7 @@ import {Lesson} from '../shared/model/lesson';
 @Injectable()
 export class CoursesService {
     // No Local State
+    // No Local Observable
 
     constructor(private db: AngularFirebaseDatabase) {}
 
@@ -697,7 +698,7 @@ export class CoursesService {
 ```ts
 export class HomeComponent implements OnInit {
     // No Local States
-    // Only Observables
+    // Only Local Observables
     courses$: Observable<Course[]>;
     latestLessons$: Observable<Lesson[]>;
 
@@ -753,23 +754,147 @@ export class HomeComponent implements OnInit {
 </div>
 ```
 
-## Observable Services
+## Observable Service
 
-### branch: observable-data-service
+> branch: observable-data-service
+
+### user.ts
+```ts
+export interface User {
+    firstName: string;
+    lastName?: string;
+}
+```
+
+### user.service.ts
+```ts
+export const UNKNOWN_USER: User = {
+    firstName = 'Unknown',
+};
+
+export class UserService {
+    // Public Observable
+    user$: Observable<User> = Observale.of(UNKNOWN_USER);
+}
+```
+
+### top-menu.component.ts
+```ts
+export class TopMenuComponent implements OnInit {
+
+    isUserLoggedIn$: Observable<boolean>;
+
+    constructor(private userService: UserService) {}
+
+    ngOnInit() {
+        this.isUserLoggedIn$ = this.userService.user$
+            .map(user => user !== UNKNOWN_USER);
+    }
+}
+```
+
+### top-menu.component.html
+```html
+<header class="l-header">
+    <ul class="top-menu disable-link-styles">
+        <li>
+            <a routerLink="home" routerLinkActive="menu-active">Home</a>
+        </li>
+        <li *ngIf="!(isUserLoggedIn$c | async)">
+            <a routerLink="login" routerLinkActive="menu-active">Home</a>
+        </li>
+        <li *ngIf="(isUserLoggedIn$c | async)">
+            <a (click)="logout()">Logout</a>
+        </li>
+    </ul>
+</header>
+```
 
 ### course-detail.component.html
+```html
+<div class="screen-container">
+
+    <course-detail-header [course]="course" [lesson]="lessons" firstName="John" (subscribe)="onSubscribe($event)"></course-detail-header>
+
+    <table class="lessons-list card card-strong" *ngIf="latestLessons$ | async as lessons else loadingLessons">
+        <tr class="lesson-summary" *ngFor="let lesson of lessons">
+            <td>
+                {{lesson.description}}
+            </td>
+            <td>
+                <i class="md-icon duration-icon">access_time</i>
+                <span>{{lesson.duration}}</span>
+            </td>
+        </tr>
+    </table>
+
+    <ng-template #loadinglessons>
+        <div>Loading...</div>
+    </ng-template>
+</div>
+```
 
 ### course-detail.component.ts
 ```ts
 export class CourseDetailComponent implements OnInit {
-    //No Local State
+    //Still Local State
+    course: Course;
+    lessons: Lesson[];
 
-    constructor(private route: ActivatedRoute, private courseService: CourseService) {}
+    constructor(
+        private route: ActivatedRoute,
+        private coursesService: CoursesService,
+        private newsLetterService: NewsLetterService,
+        private UserService: UserService, 
+    ) {}
+
+    ngOnInit() {
+        // Nested Subscriptions
+        route.params
+            .subscribe(params => {
+                this.coursesService.findCourseByUrl(params['id'])
+                    .subscribe(data => {
+                        this.course = data;
+                        this.courseService.findLessonsForCourse(this.course.id)
+                            .subscribe(data => this.lessons = data);
+                    });
+            });
+    }
+
+    onSubscribe(email: string) {
+        this.newsLetterService.subscribeToNewsLetter(email)
+            .subscribe(
+                () => alert('Subscription successful'),
+                console.error
+            );
+    }
 
 }
 ```
 
+### course-detail-header.component.ts
+```ts
+export class CourseDetailHeaderComponent {
 
+    @Input() course: Course;
+    @Input() lessons: Lesson[];
+    @Input() firstName: string;
+
+    @Output() subbscribe = new EventEmitter();
+
+    onSubscribe(email: string) {
+        this.subscribe.emit(email);
+    }
+}
+```
+
+### course-detail-header.component.html
+```html
+<h2>{{course.description}}</h2>
+<h5>Total lessons: {{lessons.length}}</h5>
+
+<newsletter [firstName]="firstName" (subscribe)="OnSubscribe($event)"></newsletter>
+```
 
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
