@@ -41,11 +41,11 @@ Everything is a stream. This includes what you are reading, listening, thinking,
 
 ## Imperative Approach Using Event Bus
 
-### branch: custom-events-2
+> branch: custom-events-2
 
 > Diagram of Observer and Subject
 
-#### lesson.ts
+### lesson.ts
 ```ts
 export interface Lesson {
     id:number;
@@ -61,7 +61,7 @@ import * as _ from 'lodash';
 
 export const LESSONS_LIST_AVAILABLE = 'NEW_LIST_AVAILABLE';
 export const ADD_NEW_LESSON = 'ADD_NEW_LESSON';
-// ... many more evemts like these
+// ... many more events like these
 
 export interface Observer {
     notify(data:any);
@@ -273,7 +273,7 @@ export class LessonsCounterComponent implements Observer {
 4. Make data as something that observers can subscribe to to observe changes and get notified about the change, say Observable
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
-### branch: observable-pattern
+> branch: observable-pattern
 ```ts
 // Separate ability of being notified or emitting new data (next) from subcribe/unsubscribe
 export interface Observer {
@@ -298,7 +298,7 @@ interface Subject extends Observer, Observable  {
 
 ## Observable, Observer and Subject in Action
 
-### branch: introduce-rxjs, prepare-lessons ???
+> branch: introduce-rxjs, prepare-lessons ???
 
 ### app-data.service.ts
 ```ts
@@ -547,7 +547,7 @@ store.subscribe(this);
 
 ## Replacing custom implementation with RxJS (Reactive Extensions)
 
-### branch: introduce-rxjs
+> branch: introduce-rxjs
 
 ### app-data.service.ts
 ```ts
@@ -613,7 +613,7 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 
 ## More Reactive Patterns
 
-### branch: stateless-services
+> branch: stateless-services
 ### Problems with Services
 1. Local state
 2. Nested subscriptions
