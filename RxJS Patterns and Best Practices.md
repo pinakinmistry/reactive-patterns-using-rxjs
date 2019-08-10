@@ -8,7 +8,7 @@ Imperative approach to handle streams of events, data, changes in data, error ha
 
 ## Everything is a stream
 
-```js
+```ts
 document.addEventListener('mouseenter', function () {
     console.log('Mouseenter Event');
 });
@@ -45,8 +45,8 @@ Everything is a stream. This includes what you are reading, listening, thinking,
 
 > Diagram of Observer and Subject
 
-### lesson.ts
-```js
+#### lesson.ts
+```ts
 export interface Lesson {
     id:number;
     description:string;
@@ -56,7 +56,7 @@ export interface Lesson {
 ```
 
 ### eventbus.service.ts
-```js
+```ts
 import * as _ from 'lodash';
 
 export const LESSONS_LIST_AVAILABLE = 'NEW_LIST_AVAILABLE';
@@ -105,7 +105,7 @@ export const globalEventBus = new EventBus();
 ```
 
 ### event-bus-experiments.component.ts
-```js
+```ts
 import {Component, OnInit} from '@angular/core';
 import {globalEventBus, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "./eventbus.service";
 import {testLessons} from "../shared/model/test-lessons";
@@ -162,7 +162,7 @@ export class EventBusExperimentsComponent implements OnInit {
 ```
 
 ### lessons-list.component.ts
-```js
+```ts
 import {Component} from '@angular/core';
 import * as _ from 'lodash';
 import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "../event-bus-experiments/eventbus.service";
@@ -210,7 +210,7 @@ export class LessonsListComponent implements Observer {
 ```
 
 ### lessons-list.component.html
-```js
+```ts
 <table class="table lessons-list card card-strong">
     <tbody>
         <tr *ngFor="let lesson of lessons">
@@ -233,7 +233,7 @@ export class LessonsListComponent implements Observer {
 ```
 
 ### lessons-counter.component.ts
-```js
+```ts
 
 import { Component, OnInit } from '@angular/core';
 import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "../event-bus-experiments/eventbus.service";
@@ -274,7 +274,7 @@ export class LessonsCounterComponent implements Observer {
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
 ### branch: observable-pattern
-```js
+```ts
 // Separate ability of being notified or emitting new data (next) from subcribe/unsubscribe
 export interface Observer {
     next(data: any);    
@@ -283,14 +283,14 @@ export interface Observer {
 }
 ```
 
-```js
+```ts
 export interface Observable {
     subscribe(obs: Observer);
     unsubscribe(obs: Observer);
 }
 ```
 
-```js
+```ts
 // Subject is private so that only owner of data can emit new data
 interface Subject extends Observer, Observable  {
 }    
@@ -301,7 +301,7 @@ interface Subject extends Observer, Observable  {
 ### branch: introduce-rxjs, prepare-lessons ???
 
 ### app-data.service.ts
-```js
+```ts
 import * as _ from 'lodash';
 
 class SubjectImpelementation implements Subject {
@@ -347,7 +347,7 @@ export function initializeLessonsList(newList: Lesson[]) {
 ## Refactoring: DataStore as Service
 
 ### app-data.service.ts
-```js
+```ts
 class DataStore {
     private lessons: Lesson[] = [];
     private lessonsListSubject = new SubjectImplementation();
@@ -392,7 +392,7 @@ export const store = new DataStore();
 ## Refactoring Imperative Style to Reactive Style
 
 ### event-bus-experiments.component.ts
-```js
+```ts
 import {Component, OnInit} from '@angular/core';
 import {testLessons} from "../shared/model/test-lessons";
 import {store} from "./app-data.service";
@@ -425,7 +425,7 @@ export class EventBusExperimentsComponent implements OnInit {
 ```
 
 ### lessons-counter.component.ts
-```js
+```ts
 
 import { Component, OnInit } from '@angular/core';
 import {Lesson} from "../shared/model/lesson";
@@ -455,7 +455,7 @@ export class LessonsCounterComponent implements Observer, OnInit {
 ```
 
 ### lessons-list.component.ts
-```js
+```ts
 import {Component} from '@angular/core';
 import * as _ from 'lodash';
 import {Lesson} from "../shared/model/lesson";
@@ -492,7 +492,7 @@ export class LessonsListComponent implements Observer, OnInit {
 We can convert store itself to an observable by implementing Observable interface. This way, we can avoid public property lessonsList$ and have the interface methods implemented directly at class level. 
 
 ### app-data.service.ts
-```js
+```ts
 class DataStore implements Observable {
     private lessons: Lesson[] = [];
     private lessonsListSubject = new SubjectImplementation();
@@ -537,7 +537,7 @@ export const store = new DataStore();
 
 ### Updating Components:
 
-```js
+```ts
 ...
 // Change below
 // store.lessonsList$.subscribe(this);
@@ -550,7 +550,7 @@ store.subscribe(this);
 ### branch: introduce-rxjs
 
 ### app-data.service.ts
-```js
+```ts
 import * as _ from 'lodash';
 import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import {lesson} from '../shared/model/lesson';
@@ -595,7 +595,7 @@ export const store = new DataStore();
 ```
 
 ### Updating Components
-```js
+```ts
 import {Observer} from 'rxjs';
 
 class LessonsListComponent implements Observer<Lesson[]>, OnInit {
@@ -631,7 +631,7 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 5. Stateless services provide observables as streams of data/events that components can subscribe too.
 
 ### courses.service.ts
-```js
+```ts
 import {Injectable} from '@angular/core';
 import {AngularFirebaseDatabase} from 'angularfire2';
 import {Observable} from 'rxjs';
