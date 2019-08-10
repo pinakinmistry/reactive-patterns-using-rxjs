@@ -620,6 +620,7 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 3. Subscriptions
 4. Long lived observables causing memory leaks
 
+
 ## Stateless Service
 1. No local states
 2. No subscriptions
@@ -635,15 +636,18 @@ import {Injectable} from '@angular/core';
 import {AngularFirebaseDatabase} from 'angularfire2';
 import {Observable} from 'rxjs';
 
-import {Couse} from '../shared/model/course';
+import {Course} from '../shared/model/course';
 import {Lesson} from '../shared/model/lesson';
 
 @Injectable()
 export class CoursesService {
+    // No Local State
+
     constructor(private db: AngularFirebaseDatabase) {}
 
     getAllCourses(): Observable<Course[]> {
         return this.db.list('courses')
+            .first()
             .do(console.log);
     }
 
@@ -654,10 +658,33 @@ export class CoursesService {
                 limitToLast: 10
             }
         })
+        .first()
         .do(console.log);
+    }
+
+    findCourseByUrl(courseUrl: string): Observable<Course> {
+        return this.db.list('courses', {
+            query: {
+                orderByChild: 'url',
+                equalTo: courseUrl
+            }
+        })
+        .first()
+        .map(data => data[0]);
+    }
+
+    findLessonsForCourse(courseId: string): Observable<Lesson[]> {
+        this.db.list('lessons', {
+            query: {
+                orderByChild: 'courseId',
+                equalTo: courseId
+            }
+        })
+        .first();
     }
 }
 ```
+
 
 ## Stateless Components
 1. No local state
@@ -666,7 +693,83 @@ export class CoursesService {
 4. Use async as syntax to avoid multiple pipes and subcriptions
 5. Stateless components are plugging streams of data with view using async pipes
 
+### home.component.ts
+```ts
+export class HomeComponent implements OnInit {
+    // No Local States
+    // Only Observables
+    courses$: Observable<Course[]>;
+    latestLessons$: Observable<Lesson[]>;
+
+    constructor(private coursesService: CoursesService) {}
+
+    ngOnInit() {
+        this.courses$ = this.coursesService.getAllCourses();
+        this.latestLessons$ = this.coursesService.getLatestLessons();
+    }
+}
+```
+
+### home.component.html
+```html
+<div class="screen-container">
+    <h2>Stateless Component using Stateless Service</h2>
+
+    <table class="courses-list card card-strong" *ngIf="courses$ | async as courses else loadingCourses">
+        <tr class="course-summary" *ngFor="let course of courses">
+            <td>
+                {{course.description}}
+            </td>
+            <td>
+                <button class="button button-primary" [routerLink]="['/course', course.url]">
+                    View
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <ng-template #loadingCourses>
+        <div>Loading...</div>
+    </ng-template>
+
+    <h2>Latest Lessons</h2>
+
+    <table class="lessons-list card card-strong" *ngIf="latestLessons$ | async as lessons else loadingLessons">
+        <tr class="course-summary" *ngFor="let course of lessons">
+            <td>
+                {{course.description}}
+            </td>
+            <td>
+                <button class="button button-primary" [routerLink]="['/course', course.url]">
+                    View
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <ng-template #loadinglessons>
+        <div>Loading...</div>
+    </ng-template>
+</div>
+```
+
 ## Observable Services
+
+### branch: observable-data-service
+
+### course-detail.component.html
+
+### course-detail.component.ts
+```ts
+export class CourseDetailComponent implements OnInit {
+    //No Local State
+
+    constructor(private route: ActivatedRoute, private courseService: CourseService) {}
+
+}
+```
+
+
 
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
