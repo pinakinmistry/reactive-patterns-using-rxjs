@@ -625,8 +625,8 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 1. No local states
 2. No subscriptions
 3. Return observables
-    return observableAPICall()
-        .do(data => subject.next(data));
+        return observableAPICall()
+            .do(data => subject.next(data));
 4.  Short lived observable using first();
 5. Stateless services provide observables as streams of data/events that components can subscribe too.
 
@@ -755,6 +755,7 @@ export class HomeComponent implements OnInit {
 ```
 
 ## Observable Service
+- Stateful with state in private BehaviorSubject
 
 > branch: observable-data-service
 
@@ -773,8 +774,48 @@ export const UNKNOWN_USER: User = {
 };
 
 export class UserService {
+    // Private Subject
+    private subject = new BehaviorSubject(UNKNOWN_USER);
     // Public Observable
-    user$: Observable<User> = Observale.of(UNKNOWN_USER);
+    user$: Observable<User> = this.subject.asObservable();
+
+    constructor(private http: Http) {}
+
+    login(email: string, password: string): Observable<User> {
+        const headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        return this.http.post('/api/login', {
+            email,
+            password,
+        })
+        .map(res => res.json())
+        .do(user => this.subject.next(user))
+        // Avoid multiple POST calls by ensure obesrvable completes first before emitting the value
+        .publishLast().refCount();
+    }
+}
+```
+
+### loginRoute.ts
+```ts
+import {User} from '../app/shared/model/user';
+
+const auth = {
+    'pp@pp.com': 'test123',
+};
+
+const users: {[key: string]: User} = {
+    'pp@pp.com': { firstName: 'Pinakin' },
+};
+
+export function loginRoute(req, res) {
+    const payload = req.body;
+
+    if(auth[payload.email] && auth[payload.email] === payload.password) {
+        res.status(200).json(users[payload.email]);
+    } else {
+        res.sendStatus(500);
+    }
 }
 ```
 
@@ -814,7 +855,12 @@ export class TopMenuComponent implements OnInit {
 ```html
 <div class="screen-container">
 
-    <course-detail-header [course]="course" [lesson]="lessons" firstName="John" (subscribe)="onSubscribe($event)"></course-detail-header>
+    <course-detail-header
+        [course]="course"
+        [lessons]="lessons"
+        [firstName]="(userService.$user | async).firstName"
+        (subscribe)="onSubscribe($event)"
+    ></course-detail-header>
 
     <table class="lessons-list card card-strong" *ngIf="latestLessons$ | async as lessons else loadingLessons">
         <tr class="lesson-summary" *ngFor="let lesson of lessons">
@@ -894,6 +940,22 @@ export class CourseDetailHeaderComponent {
 <h5>Total lessons: {{lessons.length}}</h5>
 
 <newsletter [firstName]="firstName" (subscribe)="OnSubscribe($event)"></newsletter>
+```
+
+### login.component.ts
+```ts
+export class LoginComponent implements OnInit {
+
+    constructor(private userService: UserService, private router: Router) {}
+
+    login(email: string, password: string) {
+        this.userService.login(email, password)
+            .subscribe(
+                () => this.router.navigateByUrl('/home'),
+                console.error
+            );
+    }
+}
 ```
 
 
