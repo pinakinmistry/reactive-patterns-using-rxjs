@@ -942,7 +942,7 @@ export class CourseDetailHeaderComponent {
 <h2>{{course.description}}</h2>
 <h5>Total lessons: {{lessons.length}}</h5>
 
-<newsletter [firstName]="firstName" (subscribe)="OnSubscribe($event)"></newsletter>
+<newsletter [firstName]="firstName" (subscribe)="onSubscribe($event)"></newsletter>
 ```
 
 ### login.component.ts
@@ -1003,7 +1003,37 @@ export class CourseDetailComponent implements OnInit {
 }
 ```
 
+## Avoid Prop Drilling (nested property and event bindings) using smart component
+- Handler for custom event `subscribe` is passed from CourseDetailsComponent to NewsletterComponent thru HeaderComponent
+- Avoid nested event handlers by converting NewsletterComponent to a smart component by injecting UserService and NewsletterService in it directly
+- No property and event bindings in parent components
 
+### Newsletter.component.ts
+```ts
+export class NewsletterComponent implements OnInit {
+    user$: Observable<User>;
+
+    constructor(
+        private userService: UserService,
+        private newsletterService: NewsletterService,
+    ) {}
+
+    ngOnInit() {
+        this.user$ = this.userService.user$;
+    }
+
+    subscribeToNewsletter(emailField) {
+        this.newsletterService.subscribeToNewsletter(emailField.value)
+            .subscribe(
+                () => {
+                    emailField.value = '';
+                    alert('Subscription successful');
+                },
+                console.error
+            );
+    }
+}
+```
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
 
