@@ -627,8 +627,9 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 3. Return observables
         return observableAPICall()
             .do(data => subject.next(data));
-4.  Short lived observable using first();
+4.  Short lived observable by unsubscribing after first notification using first()
 5. Stateless services provide observables as streams of data/events that components can subscribe too.
+6. Avoid multiple calls to observable by ensuring it completes before emitting the value using publishLast().refCount()
 
 ### courses.service.ts
 ```ts
@@ -648,6 +649,7 @@ export class CoursesService {
 
     getAllCourses(): Observable<Course[]> {
         return this.db.list('courses')
+            // Unsubscribe after first notification using first()
             .first()
             .do(console.log);
     }
@@ -659,6 +661,7 @@ export class CoursesService {
                 limitToLast: 10
             }
         })
+        // Unsubscribe after first notification using first()
         .first()
         .do(console.log);
     }
@@ -790,7 +793,7 @@ export class UserService {
         })
         .map(res => res.json())
         .do(user => this.subject.next(user))
-        // Avoid multiple POST calls by ensure obesrvable completes first before emitting the value
+        // Avoid multiple calls by ensure observable completes first before emitting the value
         .publishLast().refCount();
     }
 }
@@ -957,6 +960,49 @@ export class LoginComponent implements OnInit {
     }
 }
 ```
+
+## Avoid Nested Subscription using switchMap()
+
+> branch: bubble-events
+
+### course-detail.component.ts
+```ts
+export class CourseDetailComponent implements OnInit {
+    //Local Observable
+    course$: Observable<Course>;
+    lessons$: Observable<Lesson[]>;
+
+    constructor(
+        private route: ActivatedRoute,
+        private coursesService: CoursesService,
+        private newsLetterService: NewsLetterService,
+        private UserService: UserService, 
+    ) {}
+
+    ngOnInit() {
+        // Avoid Nested Subscriptions using switchMap
+        this.course$ = this.route.params
+            .switchMap(params => this.coursesService.findCourseByUrl(params['id']))
+            .first()
+            .publishLast().refCount();
+
+        this.lessons$ = this.course
+            .switchMap(course => this.coursesService.findLessonsForCourse(course.id))
+            .first()
+            .publishLast().refCount();
+    }
+
+    onSubscribe(email: string) {
+        this.newsLetterService.subscribeToNewsLetter(email)
+            .subscribe(
+                () => alert('Subscription successful'),
+                console.error
+            );
+    }
+
+}
+```
+
 
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
