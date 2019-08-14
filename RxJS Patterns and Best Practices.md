@@ -1035,6 +1035,165 @@ export class NewsletterComponent implements OnInit {
 }
 ```
 
+## Another Example: Paginated Table
+
+> branch: lessons-pager
+
+### all-lessons.component.html
+```html
+<div class="screen-container">
+    <course [id]="1"></course>
+    <course [id]="2"></course>
+</div>
+```
+
+### course.component.html
+```html
+<div class="course-md">
+    <h2>{{(course$ | async as course).description}}</h2>
+
+    <div class="lessons-nav">
+        <button (click)="previousLessonsPage()">Previous</button>
+        <button (click)="nextLessonsPage()">Next</button>
+    </div>
+    <lessons-list lessons="lesson$ | async"></lessons-list>
+</div>
+```
+
+### course.component.ts
+```ts
+export class CourseComponent extends OnInit {
+    
+    @Input() id: number;
+
+    course$: Observable<Course>;
+    lessons$: Observable<Lesson[]>;
+
+    constructor(
+        private coursesService: CoursesService,
+        private lessonsService: LessonsService,
+    ) {}
+
+    ngOnInit() {
+        this.course$ = this.coursesService.getCourseById(this.id);
+        this.lessons$ = this.lessonsService.lessonsPage$;
+        this.lessonsService.loadFirstPage(this.id);
+    }
+}
+```
+
+### courses.service.ts
+```ts
+@Injectable()
+export class CoursesService {
+
+    constructor(private http: Http) {}
+
+    getCourseById(courseId: number): Observable<Course> {
+        return this.http.get(`/api/courses/${courseId}`)
+            .map(res => res.json());
+    }
+
+    getLessonDetails(lessonId: number): Observable<Lesson> {
+        return this.http.get(`/api/lessons/${lessonId}`)
+            .map(res => res.json());
+    }
+}
+```
+
+### lessons.service.ts
+```ts
+export class LessonsService {
+
+    private courseId: number;
+    private subject = new BehaviorSubject<Lesson[]>([]);
+    lessonsPage$: Observable<Lesson[]> = this.subject.asObservable();
+    currentPageNumber = 1;
+
+    constructor(private http: Http)
+
+    loadFirstPage(courseId: number) {
+        this.courseId = courseId;
+        this.currentPageNumber = 1;
+        this.loadPage(this.currentPageNumber);
+    }
+
+    previous() {
+        if (this.currentPageNumber - 1 >= 1) {
+            this.currentPageNumber -= 1;
+            this.loadPage(this.currentPageNumber);
+        }
+    }
+
+    next() {
+        this.currentPageNumber += 1;
+        this.loadPage(this.currentPageNumber);
+    }
+
+    loadPage(pageNumber: number) {
+        this.http.get('/api/lessons', {
+            params: {
+                courseId: this.courseId,
+                pageNumber: 1,
+                pageSize: LessonsService.PAGE_SIZE,
+            }
+        })
+        .map(res => res.json().payload)
+        .subscribe(
+            lessons => this.subject.next(lessons)
+        );
+    }
+ 
+
+}
+```
+
+### server.ts
+```ts
+const bodyParser = require('body-parser');
+const app: Application = express();
+
+app.use(bodyParser.json());
+
+app.route('/api/newsletter').post(newsletterRoute);
+app.route('/api/login').post(loginRoute);
+
+app.route('/api/courses/:id').get(courseRoute);
+app.route('/api/lessons').get(lessonsRoute);
+app.route('/api/lessons/:id').get(lessonDetailRoute);
+
+app.listen(8090, () => {
+    console.log('server running at port 8090');
+})
+```
+
+### lessonsRoute.ts
+```ts
+export function lessonsRoute(req, res) {
+    const courseId = parseInt(req.query['courseId']);
+    const pageNumber = parseInt(req.query['pageNumber']);
+    const pageSize = parseInt(req.query['pageSize']);
+    const lessons = dbData[courseId].lessons;
+    const start = (pageNumber - 1) * pageSize;
+    const end = start + pageSize;
+    const lessonsPage = _.slice(lessons, start, end);
+    
+    res.status(200).json({
+        payload: lessonsPage.map(({
+            url,
+            description,
+            duration,
+        }, index) => ({
+            url,
+            description,
+            duration,
+            seqNo: index,
+        }));
+    });
+}
+```
+
+
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
 
 
