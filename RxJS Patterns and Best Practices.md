@@ -1094,7 +1094,7 @@ export class CoursesService {
             .map(res => res.json());
     }
 
-    getLessonDetails(lessonId: number): Observable<Lesson> {
+    getLessonDetails(lessonId: string): Observable<Lesson> {
         return this.http.get(`/api/lessons/${lessonId}`)
             .map(res => res.json());
     }
@@ -1190,6 +1190,159 @@ export function lessonsRoute(req, res) {
             seqNo: index,
         }));
     });
+}
+```
+
+
+## Master Detail Implementation using Observable
+
+> branch: master-detail
+
+```ts
+export interface Lesson {
+    id:number;
+    description:string;
+    seqNo:number;
+    duration:string;
+    url?:string;
+    tags?:string;
+    pro?:boolean;
+    longDescription:string;
+    courseId?:string;
+    videoUrl?:string;
+}
+```
+
+### course.component.html
+```html
+<div class="course-md">
+    <h2>{{(course$ | async as course).description}}</h2>
+
+    <div *ngIf="details$ | async as lessonDetails else masterTmpl">
+        <button (click)="backToMaster()"></button>
+        <lesson-details [lesson]="lessonDetails"></lesson-details>    
+    </div>
+
+    <ng-template #masterTmpl>
+        <div class="lessons-nav">
+            <button (click)="previousLessonsPage()">Previous</button>
+            <button (click)="nextLessonsPage()">Next</button>
+        </div>
+        <lessons-list lessons="lesson$ | async"></lessons-list>
+    </ng-template>
+</div>
+```
+
+### lesson-details.component.html
+```html
+<h3>{{lesson.description}}</h3>
+<h5>{{lesson.duration}}</h5>
+
+<iframe *ngIf="lesson.videoUrl" [src]="lesson.videoUrl | safeUrl"></iframe>
+
+<h5>Description</h5>
+<p>{{lesson.longDescription}}</p>
+```
+
+### safeUrl.pipe.ts
+```ts
+@Pipe({
+    name: 'safeUrl'
+})
+export class SafeUrlPipe extends PipeTransform {
+
+    constructor(private sanitizer: DomSanitizer) {}
+
+    transform(url: string) {
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
+}
+```
+
+### lessons-list.component.html
+```html
+<table class="table lessons-list card card-strong"
+    *ngIf="lessons else loadingLessons">
+    <tbody>
+        <tr *ngFor="let lesson of lessons" (click)="select(lesson)">
+            <td class="lesson-title">
+                {{ lesson.description }}
+            </td>
+            <td class="duration">
+                <i class="md-icon duration-icon">access_time</i>
+                <span>{{lesson.duration}}</span>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<ng-template #loadingLessons>
+    <div>Loading...</div>
+</ng-template>
+```
+
+### lessons-list.component.ts
+```ts
+export class LessonsListComponent {
+    @Input() lessons: Lesson[];
+
+    @Output() selected: EventEmitter<Lesson>;
+
+    select(lesson) {
+        this.selected.next(lesson);
+    }
+
+}
+```
+
+### course.component.html
+```html
+<div class="course-md">
+    <h2>{{(course$ | async as course).description}}</h2>
+
+    <div *ngIf="details$ | async as lessonDetails else masterTmpl">
+        <button (click)="backToMaster()"></button>
+        <lesson-details [lesson]="lessonDetails"></lesson-details>    
+    </div>
+
+    <ng-template #masterTmpl>
+        <div class="lessons-nav">
+            <button (click)="previousLessonsPage()">Previous</button>
+            <button (click)="nextLessonsPage()">Next</button>
+        </div>
+        <lessons-list lessons="lesson$ | async" (selected)="selectDetails($event)"></lessons-list>
+    </ng-template>
+</div>
+```
+
+### course.component.ts
+```ts
+export class CourseComponent extends OnInit {
+    
+    @Input() id: number;
+
+    course$: Observable<Course>;
+    lessons$: Observable<Lesson[]>;
+    details$: Observable<Lesson>;
+
+    constructor(
+        private coursesService: CoursesService,
+        private lessonsService: LessonsService,
+    ) {}
+
+    ngOnInit() {
+        this.course$ = this.coursesService.getCourseById(this.id);
+        this.lessons$ = this.lessonsService.lessonsPage$;
+        this.lessonsService.loadFirstPage(this.id);
+    }
+
+    selectDetails(lesson: Lesson) {
+        this.details$ = this.coursesService.getLessonDetails(lesson.url);
+    }
+
+    backToMaster() {
+        this.details$ = undefined;
+    }
 }
 ```
 
