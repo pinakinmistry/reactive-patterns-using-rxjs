@@ -1110,7 +1110,7 @@ export class LessonsService {
     lessonsPage$: Observable<Lesson[]> = this.subject.asObservable();
     currentPageNumber = 1;
 
-    constructor(private http: Http)
+    constructor(private http: Http) {}
 
     loadFirstPage(courseId: number) {
         this.courseId = courseId;
@@ -1140,11 +1140,11 @@ export class LessonsService {
         })
         .map(res => res.json().payload)
         .subscribe(
-            lessons => this.subject.next(lessons)
+            lessons => this.subject.next(lessons),
+            // Avoid error handling at subject level as it will stop emitting new values once in error
+            // error => this.subject.error(error)
         );
     }
- 
-
 }
 ```
 
@@ -1291,7 +1291,6 @@ export class LessonsListComponent {
     select(lesson) {
         this.selected.next(lesson);
     }
-
 }
 ```
 
@@ -1347,13 +1346,98 @@ export class CourseComponent extends OnInit {
 ```
 
 
-## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
-
-
-## Stateful Service
-
-
 ## Error Handling
+
+Handling error is as important as handling success because of the real world situations like server error or unavailable, newtwork issue, going offline, etc. At times, error handling is not given equal importance due to ignorance to various error scenarios that can occur in real world apps.
+
+- Avoid `subject.error()` as it cannot emit values once in error
+- Avoid `subscribe()`ing at service level
+- Instead return `Observable<any>` using `do(data => subject.next(data))` from service
+- And `subscribe()` for data and error handling at component level
+
+> branch: error-handling
+
+### lessons.service.ts
+```ts
+export class LessonsService {
+
+    private courseId: number;
+    private subject = new BehaviorSubject<Lesson[]>([]);
+    lessonsPage$: Observable<Lesson[]> = this.subject.asObservable();
+    currentPageNumber = 1;
+
+    constructor(private http: Http) {}
+
+    loadFirstPage(courseId: number): Observable<any> {
+        this.courseId = courseId;
+        this.currentPageNumber = 1;
+        return this.loadPage(this.currentPageNumber);
+    }
+
+    previous(): Observable<any> {
+        if (this.currentPageNumber - 1 >= 1) {
+            this.currentPageNumber -= 1;
+            return this.loadPage(this.currentPageNumber);
+        }
+    }
+
+    next(): Observable<any> {
+        this.currentPageNumber += 1;
+        return this.loadPage(this.currentPageNumber);
+    }
+
+    loadPage(pageNumber: number): Observable<any> {
+        return this.http.get('/api/lessons', {
+            params: {
+                courseId: this.courseId,
+                pageNumber: 1,
+                pageSize: LessonsService.PAGE_SIZE,
+            }
+        })
+        .map(res => res.json().payload)
+        .do(lessons => this.subject.next(lessons))
+        .publishLast().refCount();
+    }
+}
+```
+
+### course.component.ts
+```ts
+export class CourseComponent extends OnInit {
+    
+    @Input() id: number;
+
+    course$: Observable<Course>;
+    lessons$: Observable<Lesson[]>;
+    details$: Observable<Lesson>;
+
+    constructor(
+        private coursesService: CoursesService,
+        private lessonsService: LessonsService,
+    ) {}
+
+    ngOnInit() {
+        this.course$ = this.coursesService.getCourseById(this.id);
+        this.lessons$ = this.lessonsService.lessonsPage$;
+        this.lessonsService.loadFirstPage(this.id)
+            .subscribe(
+                () => {},
+                console.error
+            );
+    }
+
+    selectDetails(lesson: Lesson) {
+        this.details$ = this.coursesService.getLessonDetails(lesson.url);
+    }
+
+    backToMaster() {
+        this.details$ = undefined;
+    }
+}
+```
+
+
+## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
 
 
 ## Pre Fetching Data
@@ -1363,5 +1447,3 @@ export class CourseComponent extends OnInit {
 
 
 ## Reactive Forms as Observable
-
-
