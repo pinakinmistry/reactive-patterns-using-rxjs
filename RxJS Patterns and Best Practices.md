@@ -1306,8 +1306,8 @@ export class LessonsListComponent {
 
     <ng-template #masterTmpl>
         <div class="lessons-nav">
-            <button (click)="previousLessonsPage()">Previous</button>
-            <button (click)="nextLessonsPage()">Next</button>
+            <button (click)="previousLessons()">Previous</button>
+            <button (click)="nextLessons()">Next</button>
         </div>
         <lessons-list lessons="lesson$ | async" (selected)="selectDetails($event)"></lessons-list>
     </ng-template>
@@ -1414,6 +1414,7 @@ export class CourseComponent extends OnInit {
     constructor(
         private coursesService: CoursesService,
         private lessonsService: LessonsService,
+        private messagesService: MessagesService,
     ) {}
 
     ngOnInit() {
@@ -1422,8 +1423,22 @@ export class CourseComponent extends OnInit {
         this.lessonsService.loadFirstPage(this.id)
             .subscribe(
                 () => {},
-                console.error
+                err => messagesService.error('Could not load first page')
             );
+    }
+
+    previousLessons() {
+        this.lessonsService.previous().subscribe(
+            () => {},
+            err => messagesService.error('Could not load previous lessons')
+        );
+    }
+
+    nextLessons() {
+        this.lessonsService.next().subscribe(
+            () => {},
+            err => messagesService.error('Could not load next lessons')
+        );
     }
 
     selectDetails(lesson: Lesson) {
@@ -1436,6 +1451,48 @@ export class CourseComponent extends OnInit {
 }
 ```
 
+### messages.services.ts
+```ts
+export class MessagesService {
+
+    private errorsSubject = new BehaviorSubject<string[]>([]);
+    public errors$ = errorsSubject.asObservable();
+
+    constructor() {}
+
+    error(...errors: string[]) {
+        this.errorsSubject.next(errors);
+    }
+}
+```
+
+### messages.component.ts
+```ts
+export class MessagesComponent implements OnInit {
+
+    errors$: Observable<string[]> = Observable.of([]);
+
+    constructor(messagesService: MessagesService) {}
+
+    ngOnInit() {
+        this.errors$ = this.messagesService.$errors; 
+    }
+
+    close() {
+        this.messagesService.error();
+    }
+}
+```
+
+### messages.component.html
+```html
+<div clsas="messages-frame" *ngIf="(messages$ | async as messages).length > 0">
+    <div class="messages messages-error">
+        <i class="md-icon close-icon" (click)="close()">close</i>
+        <div *ngFor="let message of messages">{{message}}</div>
+    </div>
+</div>
+```
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
 
