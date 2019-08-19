@@ -1494,6 +1494,65 @@ export class MessagesComponent implements OnInit {
 </div>
 ```
 
+## Router Data Prefetching and Global Loading Indicator
+
+> branch: loading-indicator
+
+### router.config.ts
+```ts
+export const routerConfig = [
+    // ...
+    {
+        path: '/courses/:id',
+        component: CourseDetailComponent,
+        resolve: {
+            detail: CourseDetailResolver
+        }
+    }
+    // ...
+];
+```
+
+### course-detail.resolver.ts
+```ts
+@Injectable()
+export class CourseDetailResolver implements Resolve<[Course, Lesson[]]> {
+
+    constructor(
+        private coursesService: CoursesService
+    ) {}
+
+    resolve(
+        route: ActivatedRouteSnapshot,
+        state: RouterStateSnapshot
+    ): Observable<[Course, Lesson[]]> {
+        return this.coursesService.findCourseByUrl(route.params['id'])
+            .switchMap(course => this.coursesService.findLessonsForCourse(course.id),
+                (course, lessons) => [course, lessons]);
+    }
+}
+```
+
+### course-detail.component.ts
+```ts
+export class CourseDetailComponent implements OnInit {
+    //Local Observable
+    course$: Observable<Course>;
+    lessons$: Observable<Lesson[]>;
+
+    constructor(
+        private route: ActivatedRoute,
+    ) {}
+
+    ngOnInit() {
+        // Avoid Nested Subscriptions using switchMap
+        this.course$ = this.route.data.map(data => data['detail'][0]);
+        this.lessons$ = this.route.data.map(data => data['detail'][1]);
+    }
+}
+```
+
+
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
 
 
