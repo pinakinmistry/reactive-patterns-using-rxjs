@@ -1494,7 +1494,7 @@ export class MessagesComponent implements OnInit {
 </div>
 ```
 
-## Router Data Prefetching and Global Loading Indicator
+## Router Data Prefetching
 
 > branch: loading-indicator
 
@@ -1552,11 +1552,33 @@ export class CourseDetailComponent implements OnInit {
 }
 ```
 
+## Global Loading Indicator
+
+### loading.compoent.html
+```html
+<div class="loading-indicator" *ngIf="($loading | async)">
+    <img src="/images/loading.gif" />
+</div>
+```
+
+### loading.component.ts
+```ts
+export class LoadingComponent implements OnInit {
+
+    loading$: Observable<boolean>;
+
+    constructor(
+        private router: Router
+    ) {}
+
+    ngOnInit() {
+        this.loading$ = this.router.events.map(event => event instanceof RoutesRecognized ||
+            event instanceof NavigationStart);
+    }
+}
+```
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
-
-
-## Pre Fetching Data
 
 
 ## Global Loading Indicator
