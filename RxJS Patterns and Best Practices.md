@@ -1583,6 +1583,8 @@ export class LoadingComponent implements OnInit {
 
 ## Pre Save a Form Draft:
 
+Data entered by user can be persisted as draft without an explicit save draft button. This can be very well done in reactive way using form as an observable. `form.valueChanges()` returns an observable which we can subscribe to to save valid drafts.
+
 > branch: form-draft-save
 
 ### create-lesson.component.ts
@@ -1609,7 +1611,7 @@ export class CreateLessonComponent extends OnInit {
             this.form.setValue(JSON.parse(draft));
         }
 
-        this.form.valueChange
+        this.form.valueChanges
             .filter(() => this.form.valid)
             .do(validDraft => Cookies.set(
                 CreateLessonComponent.DRAFT_COOKIE, JSON.stringify(validDraft)
