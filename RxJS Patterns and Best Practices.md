@@ -1494,6 +1494,7 @@ export class MessagesComponent implements OnInit {
 </div>
 ```
 
+
 ## Router Data Prefetching
 
 > branch: loading-indicator
@@ -1552,6 +1553,7 @@ export class CourseDetailComponent implements OnInit {
 }
 ```
 
+
 ## Global Loading Indicator
 
 ### loading.compoent.html
@@ -1578,10 +1580,72 @@ export class LoadingComponent implements OnInit {
 }
 ```
 
+
+## Pre Save a Form Draft:
+
+> branch: form-draft-save
+
+### create-lesson.component.ts
+```ts
+export class CreateLessonComponent extends OnInit {
+
+    form: FormGroup;
+
+    private static readonly DRAFT_COOKIE = 'lesson-draft';
+
+    constructor(
+        private fb: FormBuilder,
+    ) {
+        this.form = this.fb.group({
+            description: ['', Validators.required],
+            url: ['', Validators.required],
+            longDescription: [''],
+        });
+    }
+
+    ngOnInit() {
+        const draft = Cookies.get(CreateLessonComponent.DRAFT_COOKIE);
+        if(draft) {
+            this.form.setValue(JSON.parse(draft));
+        }
+
+        this.form.valueChange
+            .filter(() => this.form.valid)
+            .do(validDraft => Cookies.set(
+                CreateLessonComponent.DRAFT_COOKIE, JSON.stringify(validDraft)
+            ))
+            .subscribe();
+    }
+}
+```
+
+### create-lesson.component.html
+```html
+<div class="screen-container">
+    <h2>Create New Lesson</h2>
+
+    <form [formGroup]="form" autocomplete="false" class="lesson-form">
+        <fieldset>
+            <legend>Lesson</legend>
+            <div class="form-field">
+                <label>Description</label>
+                <input name="title" formControlName="description" />
+            </div>
+            <div class="form-field">
+                <label>Lesson Url</label>
+                <input name="title" formControlName="url" />
+            </div>
+            <div class="form-field">
+                <label>Long Description</label>
+                <input name="title" formControlName="longDescription" />
+            </div>
+        </fieldset>
+
+        <div class="form-buttons">
+            <button class="button button-primary">Save New Lesson</button>
+        </div>
+    </form>
+</div>
+```
+
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
-
-
-## Global Loading Indicator
-
-
-## Reactive Forms as Observable
