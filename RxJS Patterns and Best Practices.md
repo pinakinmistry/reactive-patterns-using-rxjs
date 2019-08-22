@@ -1,12 +1,13 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-## What is RxJS
-RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producer and consumer to communicate events and data.
+Most of the modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. is pushing modern apps to next level. These modern use cases require a modern approach of reactive programming by reacting to the change in data and events by treating them as streams.
+We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.
 
-## Why is more important than what and how
-Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult. Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code. Thankfully, even choas have some patterns that can be tackled in effective way. RxJS provides operators to handle these patterns.
+> We will see what is `subscribe()`, `Observable` and `next()` soon but before that what is a stream?
 
 ## Everything is a stream
+
+Everything is a stream. This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, endless and can get interrupted/terminated. Data, change in data, events, errors are streams too. These streams are flowing in any application that we need to observe and react to.
 
 ```ts
 document.addEventListener('mouseenter', function () {
@@ -23,21 +24,31 @@ document.addEventListener('mousemove', function () {
 });
 ```
 
-Everything is a stream. This includes what you are reading, listening, thinking, doing, etc. Data, change in data, events, errors are no exceptions. Even these are streams flowing in any application that we need to observe and react to. We just `subscribe()` to these `Observable` streams and react to `next()` event to handle it.
+## What is RxJS
+RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producers and consumers of data and events to communicate.
 
-## Problems with Imperative/non Reactive Approach for handling streams
-1. Timing issue; notifying consumer before they are subscribed.
-2. Sequencing issue
-3. Copying data/state locally
-4. Additional listeners to update local state
-5. Public emitters of data
-6. State ownership not defined
-7. Local updates not propogated to other consumers
-8. Low Data Encapsulation
-9. Low cohesion
-10. High coupling
-11. Strange Side Effects
-12. Unpredictable
+## Why is more important than what and how
+Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult. Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code. Thankfully, even choas has some patterns that can be tackled in effective way. RxJS provides operators to handle these patterns.
+
+## Drawbacks of Imperative/non Reactive Approach for handling streams
+
+Imperative programming is difficult to support modern use cases due to below drawbacks:
+
+- Sphagetti code
+- Sharing data/state and its ownership
+- Copying data/state locally
+- Local updates not propogated to other consumers
+- Additional listeners to update local state
+- State ownership not defined
+- Global event bus
+- Public emitters of data
+- Timing issue; notifying consumers before they are subscribed
+- Sequencing issue
+- Low Data Encapsulation
+- Low cohesion
+- High coupling
+- Strange Side Effects
+- Unpredictable
 
 ## Imperative Approach Using Event Bus
 
@@ -59,6 +70,7 @@ export interface Lesson {
 ```ts
 import * as _ from 'lodash';
 
+// Custom Events
 export const LESSONS_LIST_AVAILABLE = 'NEW_LIST_AVAILABLE';
 export const ADD_NEW_LESSON = 'ADD_NEW_LESSON';
 // ... many more events like these
