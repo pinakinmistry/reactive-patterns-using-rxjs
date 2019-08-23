@@ -2,7 +2,7 @@
 
 Modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
-*** We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change. ***
+** We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change. **
 
 > We will see what is `subscribe()`, `Observable` and `next()` soon but before that, what is a stream?
 
@@ -13,7 +13,7 @@ Modern apps are becoming more and more user engaging in terms of content/data an
 
 Everything is a Stream! This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, short/long lived, endless flow which can be interrupted/terminated.
 
-*** Data, change in data, events, errors are streams too. ***
+** Data, change in data, events, errors are streams too. **
 
 These streams are flowing in any application that we can observe and react to. Let's see an example in action:
 
