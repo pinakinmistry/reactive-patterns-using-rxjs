@@ -1,13 +1,21 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Most of the modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming by reacting to the change in data and events by treating them as streams.
-We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.
+Modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
-> We will see what is `subscribe()`, `Observable` and `next()` soon but before that what is a stream?
+*** We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change. ***
+
+> We will see what is `subscribe()`, `Observable` and `next()` soon but before that, what is a stream?
+
 
 ## Everything is a stream
 
-Everything is a stream. This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, endless and can get interrupted/terminated. Data, change in data, events, errors are streams too. These streams are flowing in any application that we need to observe and react to.
+> TODO: Everything is a stream picture
+
+Everything is a Stream! This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, short/long lived, endless flow which can be interrupted/terminated.
+
+*** Data, change in data, events, errors are streams too. ***
+
+These streams are flowing in any application that we can observe and react to. Let's see an example in action:
 
 > Copy below code in browser's devtools console and move your cursor over the page to see the logs as shown in following image
 
@@ -28,11 +36,15 @@ document.addEventListener('mousemove', function () {
 
 > TODO: Image of above console
 
+> These are endless streams until you close the browser window or unsubscribe to these events using `removeEventListener()`
+
 ## What is RxJS
-RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producers and consumers of data and events to communicate.
+RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producers and consumers to communicate data and events.
+
 
 ## Why is more important than what and how
 Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult. Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code. Thankfully, even choas has some patterns that can be tackled in effective way. RxJS provides operators to handle these patterns.
+
 
 ## Drawbacks of Imperative/non Reactive Approach for handling streams
 
@@ -53,6 +65,7 @@ Imperative programming is difficult to support modern use cases due to below dra
 - High coupling
 - Strange Side Effects
 - Unpredictable
+
 
 ## Imperative Approach Using Event Bus
 
@@ -304,11 +317,13 @@ export class LessonsCounterComponent implements Observer {
 }
 ```
 
-### Reactive Approach
+
+## Reactive Approach
 1. Single Data Owner
 2. Separate register/unregister observers from emit data/notify observers
 3. Notify observers should be private
 4. Make data as something that observers can subscribe to to observe changes and get notified about the change, say Observable
+
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
 > branch: observable-pattern
@@ -333,6 +348,7 @@ export interface Observable {
 interface Subject extends Observer, Observable  {
 }    
 ```
+
 
 ## Observable, Observer and Subject in Action
 
