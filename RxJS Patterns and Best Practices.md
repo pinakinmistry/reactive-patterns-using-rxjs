@@ -164,6 +164,18 @@ export const globalEventBus = new EventBus();
 </div>
 ```
 
+
+## Problems in Individual Components:
+- Local State
+- Local initialization
+- Local updates/mutations
+- Notifying updates
+- Sharing state by reference
+- Updates shared without notification
+- No clear data ownership
+- Low cohesion
+- High coupling
+
 ### event-bus-experiments.component.ts
 ```ts
 import {Component, OnInit} from '@angular/core';
@@ -202,7 +214,7 @@ export class EventBusExperimentsComponent implements OnInit {
     }
 
     addLesson(lessonText: string) {
-        // Emitting new data to notify all subscribed observers
+        // Notifying new data to all subscribed observers
         globalEventBus.notifyObservers(ADD_NEW_LESSON, lessonText);
     }
 }
@@ -232,7 +244,7 @@ export class LessonsListComponent implements Observer {
         // Subscribe to new lesson being added in future to update the local lessons list
         globalEventBus.registerObserver(ADD_NEW_LESSON, {
             notify: lessonText => {
-                // What this is pointing to, LessonsListComponent or EventBusExperimentsComponent?
+                // What this.lesson is pointing to, LessonsListComponent's or EventBusExperimentsComponent's lessons?
                 this.lessons.push({
                     id: Math.random(),
                     description: lessonText
