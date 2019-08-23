@@ -1,6 +1,6 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Most of the modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. is pushing modern apps to next level. These modern use cases require a modern approach of reactive programming by reacting to the change in data and events by treating them as streams.
+Most of the modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming by reacting to the change in data and events by treating them as streams.
 We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.
 
 > We will see what is `subscribe()`, `Observable` and `next()` soon but before that what is a stream?
@@ -8,6 +8,8 @@ We just `subscribe()` to these `Observable` streams and react to `next()` event 
 ## Everything is a stream
 
 Everything is a stream. This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, endless and can get interrupted/terminated. Data, change in data, events, errors are streams too. These streams are flowing in any application that we need to observe and react to.
+
+> Copy below code in browser's devtools console and move your cursor over the page to see the logs as shown in following image
 
 ```ts
 document.addEventListener('mouseenter', function () {
@@ -23,6 +25,8 @@ document.addEventListener('mousemove', function () {
     console.log('Mousemove Event');
 });
 ```
+
+> TODO: Image of above console
 
 ## What is RxJS
 RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producers and consumers of data and events to communicate.
@@ -76,34 +80,45 @@ export const ADD_NEW_LESSON = 'ADD_NEW_LESSON';
 // ... many more events like these
 
 export interface Observer {
+    // Get notified with new data
     notify(data:any);
 }
 
 interface Subject {
+    // Accepts an eventType and observer that needs to be notified on that event
     registerObserver(eventType:string, obs:Observer);
+
+    // Accepts an observer that no longer needs to be notified on given eventType
     unregisterObserver(eventType:string, obs:Observer);
+
+    // Notifies all observers of given eventType with new data
     notifyObservers(eventType:string, data:any);
 }
 
 class EventBus implements Subject {
 
+    // Mapping of event type and list of observers subscribed to it
     private observers : {[key:string]: Observer[]} = {};
 
+    // Maintains list of all observers of given eventType
     registerObserver(eventType:string, obs: Observer) {
         this.observersPerEventType(eventType).push(obs);
     }
 
+    // Removes given observer from the list of given eventType
     unregisterObserver(eventType:string, obs: Observer) {
         const newObservers = _.remove(
             this.observersPerEventType(eventType), el => el === obs );
         this.observers[eventType] = newObservers;
     }
 
+    // Notifies all observers of given eventType with new data
     notifyObservers(eventType:string, data: any) {
         this.observersPerEventType(eventType)
             .forEach(obs => obs.notify(data));
     }
 
+    // Returns list of observers for given eventType
     private observersPerEventType(eventType:string): Observer[] {
         const observersPerType = this.observers[eventType];
         if (!observersPerType) {
@@ -113,7 +128,27 @@ class EventBus implements Subject {
     }
 }
 
+// Make Event Bus globally available to other parts of application
 export const globalEventBus = new EventBus();
+```
+
+> TODO: Image of UI
+
+### event-bus-experiments.component.html
+```html
+<div class="course-container">
+
+    <h2> Event Bus Experiments</h2>
+
+    <lessons-counter></lessons-counter>
+
+    <lessons-list></lessons-list>
+
+    <input #input>
+
+    <button class="button button-highlight"
+        (click)="addLesson(input.value)">Add Lesson</button>
+</div>
 ```
 
 ### event-bus-experiments.component.ts
@@ -129,48 +164,35 @@ import {testLessons} from "../shared/model/test-lessons";
 })
 export class EventBusExperimentsComponent implements OnInit {
 
+    // Local copy of lessons (local state)
     lessons: Lesson[] = [];
 
     ngOnInit() {
         console.log('Top level component broadcasted all lessons ...');
-        this.lessons = testLessons.slice(0);
+        // Initialize state
+        this.lessons = testLessons;
 
+        // Notify all subscribed observers about lessons just initialized
         globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE,
-            testLessons.slice(0));
+            testLessons);
 
         setTimeout(() => {
+            // Local state updated and notified to all subscribed observers
             this.lessons.push({
                 id: Math.random(),
                 description: 'New lesson arriving from backend'
             });
             // LessonsListComponents gets notified even if we comment out below line.
-            // because it is using reference to this.lessons in its notify method
+            // because it is using reference to EventBusExperimentsComponent's lessons in its notify method
             globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE, this.lessons);    
         }, 5000);
     }
 
     addLesson(lessonText: string) {
+        // Emitting new data to notify all subscribed observers
         globalEventBus.notifyObservers(ADD_NEW_LESSON, lessonText);
     }
 }
-
-```
-
-### event-bus-experiments.component.html
-```html
-<div class="course-container">
-
-    <h2> Event Bus Experiments</h2>
-
-    <lessons-counter></lessons-counter>
-
-    <lessons-list></lessons-list>
-
-    <input #input>
-
-    <button class="button button-highlight"
-        (click)="addLesson(input.value)" >Add Lesson</button>
-</div>
 ```
 
 ### lessons-list.component.ts
@@ -187,12 +209,14 @@ import {Lesson} from "../shared/model/lesson";
 })
 export class LessonsListComponent implements Observer {
 
+    // Local state
     lessons: Lesson[] = [];
 
     constructor() {
-        console.log('lesson list component is registered as observer ..');
+        // Subscribe to initial list of lessons
         globalEventBus.registerObserver(LESSONS_LIST_AVAILABLE, this);
 
+        // Subscribe to new lesson being added in future to update the local lessons list
         globalEventBus.registerObserver(ADD_NEW_LESSON, {
             notify: lessonText => {
                 // What this is pointing to, LessonsListComponent or EventBusExperimentsComponent?
@@ -211,10 +235,12 @@ export class LessonsListComponent implements Observer {
 
     toggleLessonViewed(lesson:Lesson) {
         console.log('toggling lesson ...');
+        // Local updates not notified to subscribed observers
         lesson.completed = !lesson.completed;
     }
 
     delete(deleted:Lesson) {
+        // Local updates not notified to subscribed observers
         _.remove(this.lessons,
             lessons => lesson.id === deleted.id);
     }
@@ -258,24 +284,24 @@ import {Lesson} from "../shared/model/lesson";
 })
 export class LessonsCounterComponent implements Observer {
 
+    // Local state
     lessonsCounter = 0;
 
     constructor() {
-        console.log('lesson list component is registered as observer ..');
+        // Subscribe to initial list of lessons
         globalEventBus.registerObserver(LESSONS_LIST_AVAILABLE, this);
 
+        // Subscribe to new lesson being added in future to update the local lessons list
         globalEventBus.registerObserver(ADD_NEW_LESSON, {
             notify: lessonText => this.lessonsCounter += 1
         } );
     }
 
     notify(data: Lesson[]) {
-        console.log('counter component received data ..');
+        // Update the counter based on new state
         this.lessonsCounter = data.length;
     }
-
 }
-
 ```
 
 ### Reactive Approach
