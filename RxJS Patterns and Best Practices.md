@@ -1,6 +1,6 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Modern apps are becoming more and more user engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolls, switching views, post/like/share/comment actions, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
+Modern apps are becoming more and more engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolling, switching views, post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
@@ -99,10 +99,10 @@ export interface Observer {
 
 interface Subject {
     // Accepts an eventType and observer that needs to be notified on that event
-    registerObserver(eventType:string, obs:Observer);
+    subscribeObserver(eventType:string, obs:Observer);
 
     // Accepts an observer that no longer needs to be notified on given eventType
-    unregisterObserver(eventType:string, obs:Observer);
+    unsubscribeObserver(eventType:string, obs:Observer);
 
     // Notifies all observers of given eventType with new data
     notifyObservers(eventType:string, data:any);
@@ -114,12 +114,12 @@ class EventBus implements Subject {
     private observers : {[key:string]: Observer[]} = {};
 
     // Maintains list of all observers of given eventType
-    registerObserver(eventType:string, obs: Observer) {
+    subscribeObserver(eventType:string, obs: Observer) {
         this.observersPerEventType(eventType).push(obs);
     }
 
     // Removes given observer from the list of given eventType
-    unregisterObserver(eventType:string, obs: Observer) {
+    unsubscribeObserver(eventType:string, obs: Observer) {
         const newObservers = _.remove(
             this.observersPerEventType(eventType), el => el === obs );
         this.observers[eventType] = newObservers;
@@ -208,7 +208,8 @@ export class EventBusExperimentsComponent implements OnInit {
                 description: 'New lesson arriving from backend'
             });
             // LessonsListComponents gets notified even if we comment out below line.
-            // because it is using reference to EventBusExperimentsComponent's lessons in its notify method
+            // because it is using reference to EventBusExperimentsComponent's lessons
+            // in its notify method
             globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE, this.lessons);    
         }, 5000);
     }
@@ -224,7 +225,9 @@ export class EventBusExperimentsComponent implements OnInit {
 ```ts
 import {Component} from '@angular/core';
 import * as _ from 'lodash';
-import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "../event-bus-experiments/eventbus.service";
+import {
+    globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON
+} from "../event-bus-experiments/eventbus.service";
 import {Lesson} from "../shared/model/lesson";
 
 @Component({
@@ -239,12 +242,13 @@ export class LessonsListComponent implements Observer {
 
     constructor() {
         // Subscribe to initial list of lessons
-        globalEventBus.registerObserver(LESSONS_LIST_AVAILABLE, this);
+        globalEventBus.subscribeObserver(LESSONS_LIST_AVAILABLE, this);
 
         // Subscribe to new lesson being added in future to update the local lessons list
-        globalEventBus.registerObserver(ADD_NEW_LESSON, {
+        globalEventBus.subscribeObserver(ADD_NEW_LESSON, {
             notify: lessonText => {
-                // What this.lesson is pointing to, LessonsListComponent's or EventBusExperimentsComponent's lessons?
+                // What this.lesson is pointing to, LessonsListComponent's or 
+                // EventBusExperimentsComponent's lessons?
                 this.lessons.push({
                     id: Math.random(),
                     description: lessonText
@@ -278,7 +282,8 @@ export class LessonsListComponent implements Observer {
     <tbody>
         <tr *ngFor="let lesson of lessons">
             <td class="viewed">
-                <input [checked]="lesson.completed" type="checkbox" (click)="toggleLessonViewed(lesson)">
+                <input [checked]="lesson.completed" type="checkbox"
+                    (click)="toggleLessonViewed(lesson)">
             </td>
             <td class="lesson-title" [ngClass]="{'lesson-viewed':lesson.completed}">
                 {{ lesson.description }}
@@ -314,10 +319,10 @@ export class LessonsCounterComponent implements Observer {
 
     constructor() {
         // Subscribe to initial list of lessons
-        globalEventBus.registerObserver(LESSONS_LIST_AVAILABLE, this);
+        globalEventBus.subscribeObserver(LESSONS_LIST_AVAILABLE, this);
 
         // Subscribe to new lesson being added in future to update the local lessons list
-        globalEventBus.registerObserver(ADD_NEW_LESSON, {
+        globalEventBus.subscribeObserver(ADD_NEW_LESSON, {
             notify: lessonText => this.lessonsCounter += 1
         } );
     }
@@ -332,9 +337,9 @@ export class LessonsCounterComponent implements Observer {
 
 ## Reactive Approach
 1. Single Data Owner
-2. Separate register/unregister observers from emit data/notify observers
+2. Separate subscribe/unsubscribe observers from emit data/notify observers
 3. Notify observers should be private
-4. Make data as something that observers can subscribe to to observe changes and get notified about the change, say Observable
+4. Make data as something that observers can subscribe to to observe changes and get notified about the change
 
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
@@ -507,7 +512,7 @@ export class LessonsCounterComponent implements Observer, OnInit {
     lessonsCounter = 0;
 
     ngOnInit() {
-        console.log('lesson list component is registered as observer ..');
+        console.log('lesson list component is subscribeed as observer ..');
         store.lessonsList$.subscribe(this);
     }
 
@@ -622,7 +627,8 @@ import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import {lesson} from '../shared/model/lesson';
 
 class DataStore {
-    // No need of local state as the state can be maintained in the BehaviorSubject itself as it remembers the last emitted value.
+    // No need of local state as the state can be maintained in the 
+    // BehaviorSubject itself as it remembers the last emitted value.
     // private lessons: Lesson[] = [];
     private lessonsListSubject = new BehaviorSubject([]);
 
@@ -785,7 +791,8 @@ export class HomeComponent implements OnInit {
 <div class="screen-container">
     <h2>Stateless Component using Stateless Service</h2>
 
-    <table class="courses-list card card-strong" *ngIf="courses$ | async as courses else loadingCourses">
+    <table class="courses-list card card-strong"
+        *ngIf="courses$ | async as courses else loadingCourses">
         <tr class="course-summary" *ngFor="let course of courses">
             <td>
                 {{course.description}}
@@ -804,7 +811,8 @@ export class HomeComponent implements OnInit {
 
     <h2>Latest Lessons</h2>
 
-    <table class="lessons-list card card-strong" *ngIf="latestLessons$ | async as lessons else loadingLessons">
+    <table class="lessons-list card card-strong"
+        *ngIf="latestLessons$ | async as lessons else loadingLessons">
         <tr class="course-summary" *ngFor="let course of lessons">
             <td>
                 {{course.description}}
@@ -931,7 +939,8 @@ export class TopMenuComponent implements OnInit {
         (subscribe)="onSubscribe($event)"
     ></course-detail-header>
 
-    <table class="lessons-list card card-strong" *ngIf="latestLessons$ | async as lessons else loadingLessons">
+    <table class="lessons-list card card-strong"
+        *ngIf="latestLessons$ | async as lessons else loadingLessons">
         <tr class="lesson-summary" *ngFor="let lesson of lessons">
             <td>
                 {{lesson.description}}
