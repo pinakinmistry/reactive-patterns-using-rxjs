@@ -1,6 +1,6 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Modern apps are becoming more and more engaging in terms of content/data and interactivity (user or system events). User events like infinite scrolling, switching views, post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
+Modern apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events). User events like infinite feeds, switching views, post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
@@ -67,13 +67,14 @@ Imperative programming is difficult to support modern use cases due to below dra
 - Unpredictable
 
 
-## Imperative Approach Using Event Bus
+## Lessons ToDo App Using Imperative Approach
+
+Let's implement Lessons ToDo App using imperative approach with a global event bus that will provide a communication channel between producer (Subject) of data and consumers (Observer) of that data.
 
 > branch: custom-events-2
+> TODO: Image of UI
 
-> Diagram of Observer and Subject
-
-### lesson.ts
+### Data Model: lesson.ts
 ```ts
 export interface Lesson {
     id:number;
@@ -83,7 +84,12 @@ export interface Lesson {
 }
 ```
 
-### eventbus.service.ts
+> Diagram of Observer and Subject
+
+### Service: eventbus.service.ts
+
+`GlobalEventBus` service handles custom events and implements generic Subject and Observer interface for the communication channel.
+
 ```ts
 import * as _ from 'lodash';
 
@@ -144,8 +150,6 @@ class EventBus implements Subject {
 // Make Event Bus globally available to other parts of application
 export const globalEventBus = new EventBus();
 ```
-
-> TODO: Image of UI
 
 ### event-bus-experiments.component.html
 ```html
