@@ -1,6 +1,10 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Modern apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events). User events like infinite feeds, switching views, post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level. These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
+Modern apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events).
+
+User events like infinite scrolls, switching views, swipe/post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level.
+
+These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
