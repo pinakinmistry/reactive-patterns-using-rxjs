@@ -4,7 +4,7 @@ Modern Apps are becoming more and more engaging in terms of dynamic data/content
 
 User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level.
 
-These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
+These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as continuous streams.
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
@@ -55,7 +55,7 @@ Imperative approach to handle streams of events, data, changes in data, error ha
 
 Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code.
 
-Thankfully, even choas has some patterns that can be tackled in effective way.
+Thankfully, even chaos has some patterns that can be tackled in effective way.
 
 RxJS provides operators to handle these patterns.
 
