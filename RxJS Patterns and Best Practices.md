@@ -1,8 +1,8 @@
 # What, Why and How RxJS with Reactive Patterns and Best Practices
 
-Modern apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events).
+Modern Apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events).
 
-User events like infinite scrolls, switching views, swipe/post/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level.
+User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level.
 
 These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as streams.
 
@@ -11,11 +11,13 @@ These modern use cases require a modern approach of reactive programming in whic
 > We will see what is `subscribe()`, `Observable` and `next()` soon but before that, what is a stream?
 
 
-## Everything is a stream
+## Everything is a Stream
 
 > TODO: Everything is a stream picture
 
-Everything is a Stream! This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future. It is ongoing, untimely, short/long lived, endless flow which can be interrupted/terminated.
+Everything is a Stream! This includes what you are reading, listening, thinking, understanding, doing, etc. right now and in future.
+
+It is ongoing, untimely, short/long lived, endless flow which can be interrupted/terminated. So keep breathing.
 
 **Data, change in data, events, errors are streams too.**
 
