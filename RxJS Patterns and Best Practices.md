@@ -45,11 +45,19 @@ document.addEventListener('mousemove', function () {
 > These are endless streams until you close the browser window or unsubscribe to these events using `removeEventListener()`
 
 ## What is RxJS
-RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way. It provides elegant and powerful ways to establish continuous channels between producers and consumers to communicate data and events.
+RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way.
+
+It provides elegant and powerful ways to establish continuous channels between producers and consumers to communicate data and events.
 
 
 ## Why is more important than what and how
-Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult. Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code. Thankfully, even choas has some patterns that can be tackled in effective way. RxJS provides operators to handle these patterns.
+Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult.
+
+Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code.
+
+Thankfully, even choas has some patterns that can be tackled in effective way.
+
+RxJS provides operators to handle these patterns.
 
 
 ## Drawbacks of Imperative/non Reactive Approach for handling streams
