@@ -375,7 +375,7 @@ export interface Observer {
 ```
 
 
-**Observable:** A stream that we can `subscribe` to and `unsubscribe` from once we don't want to observe.
+**Observable:** A stream that `Observer` can observe using `subscribe` and then `unsubscribe` it when `Observer` is not interested in getting notified anymore.
 
 ```ts
 export interface Observable {
