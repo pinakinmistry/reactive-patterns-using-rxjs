@@ -362,6 +362,9 @@ export class LessonsCounterComponent implements Observer {
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
 > branch: observable-pattern
+
+**Observer:** Consumer of data/event emitted by Subject using `next()`
+
 ```ts
 // Separate ability of being notified or emitting new data (next) from subcribe/unsubscribe
 export interface Observer {
@@ -371,12 +374,16 @@ export interface Observer {
 }
 ```
 
+**Observable:** A stream that we can `subscribe` to and `unsubscribe` from once we are don't want to observe.
+
 ```ts
 export interface Observable {
     subscribe(obs: Observer);
     unsubscribe(obs: Observer);
 }
 ```
+
+**Subject:** Subject is a producer of data/event. This way it implements both Observer and Observable so that it can `next()` new data **privately** as a producer and provide public interface to subscribe and unsubsribe.
 
 ```ts
 // Subject is private so that only owner of data can emit new data
