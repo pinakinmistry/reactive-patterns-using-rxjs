@@ -64,7 +64,6 @@ RxJS provides operators to handle these patterns.
 
 Imperative programming is difficult to support modern use cases due to below drawbacks:
 
-- Sphagetti code
 - Sharing data/state and its ownership
 - Copying data/state locally
 - Local updates not propogated to other consumers
@@ -78,12 +77,13 @@ Imperative programming is difficult to support modern use cases due to below dra
 - Low cohesion
 - High coupling
 - Strange Side Effects
+- Spaghetti code
 - Unpredictable
 
 
 ## Lessons ToDo App Using Imperative Approach
 
-Let's implement Lessons ToDo App using imperative approach with a global event bus that will provide a communication channel between producer (Subject) of data and consumers (Observer) of that data.
+Let's implement Lessons ToDo App using imperative approach with a global event bus that will provide a communication channel between producer (Subject) of data and consumers (Observers) of that data.
 
 > branch: custom-events-2
 > TODO: Image of UI
@@ -100,15 +100,14 @@ export interface Lesson {
 
 > Diagram of Observer and Subject
 
+`EventBus` service implements `Subject` interface for building a communication channel of custom events for consumers of data.
+
 ### Service: eventbus.service.ts
-
-`GlobalEventBus` service handles custom events and implements generic Subject and Observer interface for the communication channel.
-
 ```ts
 import * as _ from 'lodash';
 
 // Custom Events
-export const LESSONS_LIST_AVAILABLE = 'NEW_LIST_AVAILABLE';
+export const LESSONS_LIST_AVAILABLE = 'LESSONS_LIST_AVAILABLE';
 export const ADD_NEW_LESSON = 'ADD_NEW_LESSON';
 // ... many more events like these
 
@@ -211,11 +210,11 @@ export class EventBusExperimentsComponent implements OnInit {
     lessons: Lesson[] = [];
 
     ngOnInit() {
-        console.log('Top level component broadcasted all lessons ...');
         // Initialize state
         this.lessons = testLessons;
 
         // Notify all subscribed observers about lessons just initialized
+        // Note that testLessons is notified to all observers by reference instead of by value
         globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE,
             testLessons);
 
@@ -276,12 +275,12 @@ export class LessonsListComponent implements Observer {
     }
 
     notify(data: Lesson[]) {
-        console.log('Lessons list component received data ..');
+        // Get notified once Lessons are available
+        // Note that data is reference to testLessons from EventBusExperimentsComponent
         this.lessons = data;
     }
 
     toggleLessonViewed(lesson:Lesson) {
-        console.log('toggling lesson ...');
         // Local updates not notified to subscribed observers
         lesson.completed = !lesson.completed;
     }
@@ -354,10 +353,10 @@ export class LessonsCounterComponent implements Observer {
 
 
 ## Reactive Approach
-1. Single Data Owner
+1. Well defined data ownership
 2. Separate subscribe/unsubscribe observers from emit data/notify observers
 3. Notify observers should be private
-4. Make data as something that observers can subscribe to to observe changes and get notified about the change
+4. Make data as something that observers can subscribe to to observe changes and get notified about it
 
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
@@ -375,7 +374,7 @@ export interface Observer {
 ```
 
 
-**Observable:** A stream that `Observer` can observe using `subscribe` and then `unsubscribe` it when `Observer` is not interested in getting notified anymore.
+**Observable:** A stream that `Observer` can observe using `subscribe` and later `unsubscribe` once done.
 
 ```ts
 export interface Observable {
@@ -385,7 +384,7 @@ export interface Observable {
 ```
 
 
-**Subject:** Subject is a producer of data/event. This way it implements both Observer and Observable so that it can `next()` new data **privately** as a producer and provide public interface to subscribe and unsubsribe.
+**Subject:** Subject is a producer of data/event. It extends both Observer and Observable so that it can produce/emit new data or event **privately** using `next()` and provides a **public** interface to `Observers` to subscribe and unsubsribe.
 
 ```ts
 // Subject is private so that only owner of data can emit new data
@@ -402,7 +401,7 @@ interface Subject extends Observer, Observable  {
 ```ts
 import * as _ from 'lodash';
 
-class SubjectImpelementation implements Subject {
+class SubjectImplementation implements Subject {
     private observers: Observer[] = [];
 
     subscribe(obs: Observer) {
@@ -503,7 +502,7 @@ import {store} from "./app-data.service";
 export class EventBusExperimentsComponent implements OnInit {
 
     ngOnInit() {
-        console.log('Top level component broadcasted all lessons ...');
+        // Notify all observers about Lessons
         store.initializeLessonsList(testLessons);
 
         setTimeout(() => {
