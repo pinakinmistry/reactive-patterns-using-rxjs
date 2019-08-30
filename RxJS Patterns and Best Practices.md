@@ -10,7 +10,6 @@ These modern use cases require a modern approach of reactive programming in whic
 
 > We will see what is `subscribe()`, `Observable` and `next()` soon but before that, what is a stream?
 
-
 ## Everything is a Stream
 
 > TODO: Everything is a stream picture
@@ -41,16 +40,16 @@ document.addEventListener('mousemove', function () {
 ```
 
 > TODO: Image of above console
-
 > These are endless streams until you close the browser window or unsubscribe to these events using `removeEventListener()`
 
 ## What is RxJS
+
 RxJS, Reactive Extensions for JavaScript, is a utility library for handling streams and events in reactive way.
 
 It provides elegant and powerful ways to establish continuous channels between producers and consumers to communicate data and events.
 
-
 ## Why is more important than what and how
+
 Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult.
 
 Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code.
@@ -58,7 +57,6 @@ Due to asynchronous and continuous nature of stream, imperative approach leads t
 Thankfully, even chaos has some patterns that can be tackled in effective way.
 
 RxJS provides operators to handle these patterns.
-
 
 ## Drawbacks of Imperative/non Reactive Approach for handling streams
 
@@ -89,6 +87,7 @@ Let's implement Lessons ToDo App using imperative approach with a global event b
 > TODO: Image of UI
 
 ### Data Model: lesson.ts
+
 ```ts
 export interface Lesson {
     id:number;
@@ -103,6 +102,7 @@ export interface Lesson {
 `EventBus` service implements `Subject` interface for building a communication channel of custom events for consumers of data.
 
 ### Service: eventbus.service.ts
+
 ```ts
 import * as _ from 'lodash';
 
@@ -165,6 +165,7 @@ export const globalEventBus = new EventBus();
 ```
 
 ### event-bus-experiments.component.html
+
 ```html
 <div class="course-container">
 
@@ -181,8 +182,8 @@ export const globalEventBus = new EventBus();
 </div>
 ```
 
-
 ## Problems in Individual Components:
+
 - Local State
 - Local initialization
 - Local updates/mutations
@@ -194,6 +195,7 @@ export const globalEventBus = new EventBus();
 - High coupling
 
 ### event-bus-experiments.component.ts
+
 ```ts
 import {Component, OnInit} from '@angular/core';
 import {globalEventBus, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "./eventbus.service";
@@ -227,7 +229,7 @@ export class EventBusExperimentsComponent implements OnInit {
             // LessonsListComponents gets notified even if we comment out below line.
             // because it is using reference to EventBusExperimentsComponent's lessons
             // in its notify method
-            globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE, this.lessons);    
+            globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE, this.lessons);
         }, 5000);
     }
 
@@ -239,6 +241,7 @@ export class EventBusExperimentsComponent implements OnInit {
 ```
 
 ### lessons-list.component.ts
+
 ```ts
 import {Component} from '@angular/core';
 import * as _ from 'lodash';
@@ -264,7 +267,7 @@ export class LessonsListComponent implements Observer {
         // Subscribe to new lesson being added in future to update the local lessons list
         globalEventBus.subscribeObserver(ADD_NEW_LESSON, {
             notify: lessonText => {
-                // What this.lesson is pointing to, LessonsListComponent's or 
+                // What this.lesson is pointing to, LessonsListComponent's or
                 // EventBusExperimentsComponent's lessons?
                 this.lessons.push({
                     id: Math.random(),
@@ -294,6 +297,7 @@ export class LessonsListComponent implements Observer {
 ```
 
 ### lessons-list.component.html
+
 ```ts
 <table class="table lessons-list card card-strong">
     <tbody>
@@ -318,8 +322,8 @@ export class LessonsListComponent implements Observer {
 ```
 
 ### lessons-counter.component.ts
-```ts
 
+```ts
 import { Component, OnInit } from '@angular/core';
 import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "../event-bus-experiments/eventbus.service";
 import {Lesson} from "../shared/model/lesson";
@@ -351,15 +355,15 @@ export class LessonsCounterComponent implements Observer {
 }
 ```
 
-
 ## Reactive Approach
+
 1. Well defined data ownership
 2. Separate subscribe/unsubscribe observers from emit data/notify observers
 3. Notify observers should be private
 4. Make data as something that observers can subscribe to to observe changes and get notified about it
 
-
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
+
 > branch: observable-pattern
 
 **Observer:** Consumer of data/event emitted by Subject using `next()`
@@ -367,7 +371,7 @@ export class LessonsCounterComponent implements Observer {
 ```ts
 // Separate ability of being notified or emitting new data (next) from subcribe/unsubscribe
 export interface Observer {
-    next(data: any);    
+    next(data: any);
     complete();
     error();
 }
@@ -383,21 +387,20 @@ export interface Observable {
 }
 ```
 
-
 **Subject:** Subject is a producer of data/event. It extends both Observer and Observable so that it can produce/emit new data or event **privately** using `next()` and provides a **public** interface to `Observers` to subscribe and unsubsribe.
 
 ```ts
 // Subject is private so that only owner of data can emit new data
 interface Subject extends Observer, Observable  {
-}    
+}
 ```
-
 
 ## Observable, Observer and Subject in Action
 
 > branch: introduce-rxjs, prepare-lessons ???
 
 ### app-data.service.ts
+
 ```ts
 import * as _ from 'lodash';
 
@@ -443,7 +446,10 @@ export function initializeLessonsList(newList: Lesson[]) {
 
 ## Refactoring: DataStore as Service
 
+> TODO: Notes
+
 ### app-data.service.ts
+
 ```ts
 class DataStore {
     private lessons: Lesson[] = [];
@@ -489,6 +495,7 @@ export const store = new DataStore();
 ## Refactoring Imperative Style to Reactive Style
 
 ### event-bus-experiments.component.ts
+
 ```ts
 import {Component, OnInit} from '@angular/core';
 import {testLessons} from "../shared/model/test-lessons";
@@ -522,8 +529,8 @@ export class EventBusExperimentsComponent implements OnInit {
 ```
 
 ### lessons-counter.component.ts
-```ts
 
+```ts
 import { Component, OnInit } from '@angular/core';
 import {Lesson} from "../shared/model/lesson";
 import {store, Observer} from "../event-bus-experiments/app-data.service";
@@ -552,6 +559,7 @@ export class LessonsCounterComponent implements Observer, OnInit {
 ```
 
 ### lessons-list.component.ts
+
 ```ts
 import {Component} from '@angular/core';
 import * as _ from 'lodash';
@@ -586,9 +594,11 @@ export class LessonsListComponent implements Observer, OnInit {
 ```
 
 ## Store as Observable
-We can convert store itself to an observable by implementing Observable interface. This way, we can avoid public property lessonsList$ and have the interface methods implemented directly at class level. 
+
+We can convert store itself to an observable by implementing Observable interface. This way, we can avoid public property lessonsList$ and have the interface methods implemented directly at class level.
 
 ### app-data.service.ts
+
 ```ts
 class DataStore implements Observable {
     private lessons: Lesson[] = [];
@@ -598,7 +608,7 @@ class DataStore implements Observable {
         this.lessonsListSubject.subscribe(obs);
         obs.next(this.lessons);
     }
-    
+
     unsubscribe(obs: Observer) {
         this.lessonsListSubject.subscribe(obs);
     }
@@ -632,7 +642,7 @@ class DataStore implements Observable {
 export const store = new DataStore();
 ```
 
-### Updating Components:
+### Updating Components
 
 ```ts
 ...
@@ -647,13 +657,14 @@ store.subscribe(this);
 > branch: introduce-rxjs
 
 ### app-data.service.ts
+
 ```ts
 import * as _ from 'lodash';
 import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import {lesson} from '../shared/model/lesson';
 
 class DataStore {
-    // No need of local state as the state can be maintained in the 
+    // No need of local state as the state can be maintained in the
     // BehaviorSubject itself as it remembers the last emitted value.
     // private lessons: Lesson[] = [];
     private lessonsListSubject = new BehaviorSubject([]);
@@ -693,6 +704,7 @@ export const store = new DataStore();
 ```
 
 ### Updating Components
+
 ```ts
 import {Observer} from 'rxjs';
 
@@ -712,24 +724,27 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 ## More Reactive Patterns
 
 > branch: stateless-services
+
 ### Problems with Services
+
 1. Local state
 2. Nested subscriptions
 3. Subscriptions
 4. Long lived observables causing memory leaks
 
-
 ## Stateless Service
+
 1. No local states
 2. No subscriptions
 3. Return observables
         return observableAPICall()
             .do(data => subject.next(data));
-4.  Short lived observable by unsubscribing after first notification using first()
+4. Short lived observable by unsubscribing after first notification using first()
 5. Stateless services provide observables as streams of data/events that components can subscribe too.
 6. Avoid multiple calls to observable by ensuring it completes before emitting the value using publishLast().refCount()
 
 ### courses.service.ts
+
 ```ts
 import {Injectable} from '@angular/core';
 import {AngularFirebaseDatabase} from 'angularfire2';
@@ -787,8 +802,8 @@ export class CoursesService {
 }
 ```
 
-
 ## Stateless Components
+
 1. No local state
 2. Injects stateless services to make observables available to view template
 3. Auto subscribe to these observables using async pipes
@@ -796,6 +811,7 @@ export class CoursesService {
 5. Stateless components are plugging streams of data with view using async pipes
 
 ### home.component.ts
+
 ```ts
 export class HomeComponent implements OnInit {
     // No Local States
@@ -813,6 +829,7 @@ export class HomeComponent implements OnInit {
 ```
 
 ### home.component.html
+
 ```html
 <div class="screen-container">
     <h2>Stateless Component using Stateless Service</h2>
@@ -858,11 +875,13 @@ export class HomeComponent implements OnInit {
 ```
 
 ## Observable Service
+
 - Stateful with state in private BehaviorSubject
 
 > branch: observable-data-service
 
 ### user.ts
+
 ```ts
 export interface User {
     firstName: string;
@@ -871,6 +890,7 @@ export interface User {
 ```
 
 ### user.service.ts
+
 ```ts
 export const UNKNOWN_USER: User = {
     firstName = 'Unknown',
@@ -900,6 +920,7 @@ export class UserService {
 ```
 
 ### loginRoute.ts
+
 ```ts
 import {User} from '../app/shared/model/user';
 
@@ -923,6 +944,7 @@ export function loginRoute(req, res) {
 ```
 
 ### top-menu.component.ts
+
 ```ts
 export class TopMenuComponent implements OnInit {
 
@@ -938,6 +960,7 @@ export class TopMenuComponent implements OnInit {
 ```
 
 ### top-menu.component.html
+
 ```html
 <header class="l-header">
     <ul class="top-menu disable-link-styles">
@@ -955,6 +978,7 @@ export class TopMenuComponent implements OnInit {
 ```
 
 ### course-detail.component.html
+
 ```html
 <div class="screen-container">
 
@@ -985,6 +1009,7 @@ export class TopMenuComponent implements OnInit {
 ```
 
 ### course-detail.component.ts
+
 ```ts
 export class CourseDetailComponent implements OnInit {
     //Still Local State
@@ -995,7 +1020,7 @@ export class CourseDetailComponent implements OnInit {
         private route: ActivatedRoute,
         private coursesService: CoursesService,
         private newsLetterService: NewsLetterService,
-        private UserService: UserService, 
+        private UserService: UserService,
     ) {}
 
     ngOnInit() {
@@ -1023,6 +1048,7 @@ export class CourseDetailComponent implements OnInit {
 ```
 
 ### course-detail-header.component.ts
+
 ```ts
 export class CourseDetailHeaderComponent {
 
@@ -1039,6 +1065,7 @@ export class CourseDetailHeaderComponent {
 ```
 
 ### course-detail-header.component.html
+
 ```html
 <h2>{{course.description}}</h2>
 <h5>Total lessons: {{lessons.length}}</h5>
@@ -1047,6 +1074,7 @@ export class CourseDetailHeaderComponent {
 ```
 
 ### login.component.ts
+
 ```ts
 export class LoginComponent implements OnInit {
 
@@ -1067,6 +1095,7 @@ export class LoginComponent implements OnInit {
 > branch: bubble-events
 
 ### course-detail.component.ts
+
 ```ts
 export class CourseDetailComponent implements OnInit {
     //Local Observable
@@ -1077,7 +1106,7 @@ export class CourseDetailComponent implements OnInit {
         private route: ActivatedRoute,
         private coursesService: CoursesService,
         private newsLetterService: NewsLetterService,
-        private UserService: UserService, 
+        private UserService: UserService,
     ) {}
 
     ngOnInit() {
@@ -1105,11 +1134,13 @@ export class CourseDetailComponent implements OnInit {
 ```
 
 ## Avoid Prop Drilling (nested property and event bindings) using smart component
+
 - Handler for custom event `subscribe` is passed from CourseDetailsComponent to NewsletterComponent thru HeaderComponent
 - Avoid nested event handlers by converting NewsletterComponent to a smart component by injecting UserService and NewsletterService in it directly
 - No property and event bindings in parent components
 
 ### Newsletter.component.ts
+
 ```ts
 export class NewsletterComponent implements OnInit {
     user$: Observable<User>;
@@ -1141,6 +1172,7 @@ export class NewsletterComponent implements OnInit {
 > branch: lessons-pager
 
 ### all-lessons.component.html
+
 ```html
 <div class="screen-container">
     <course [id]="1"></course>
@@ -1149,6 +1181,7 @@ export class NewsletterComponent implements OnInit {
 ```
 
 ### course.component.html
+
 ```html
 <div class="course-md">
     <h2>{{(course$ | async as course).description}}</h2>
@@ -1162,9 +1195,10 @@ export class NewsletterComponent implements OnInit {
 ```
 
 ### course.component.ts
+
 ```ts
 export class CourseComponent extends OnInit {
-    
+
     @Input() id: number;
 
     course$: Observable<Course>;
@@ -1184,6 +1218,7 @@ export class CourseComponent extends OnInit {
 ```
 
 ### courses.service.ts
+
 ```ts
 @Injectable()
 export class CoursesService {
@@ -1203,6 +1238,7 @@ export class CoursesService {
 ```
 
 ### lessons.service.ts
+
 ```ts
 export class LessonsService {
 
@@ -1250,6 +1286,7 @@ export class LessonsService {
 ```
 
 ### server.ts
+
 ```ts
 const bodyParser = require('body-parser');
 const app: Application = express();
@@ -1269,6 +1306,7 @@ app.listen(8090, () => {
 ```
 
 ### lessonsRoute.ts
+
 ```ts
 export function lessonsRoute(req, res) {
     const courseId = parseInt(req.query['courseId']);
@@ -1278,7 +1316,7 @@ export function lessonsRoute(req, res) {
     const start = (pageNumber - 1) * pageSize;
     const end = start + pageSize;
     const lessonsPage = _.slice(lessons, start, end);
-    
+
     res.status(200).json({
         payload: lessonsPage.map(({
             url,
@@ -1293,7 +1331,6 @@ export function lessonsRoute(req, res) {
     });
 }
 ```
-
 
 ## Master Detail Implementation using Observable
 
@@ -1315,13 +1352,14 @@ export interface Lesson {
 ```
 
 ### course.component.html
+
 ```html
 <div class="course-md">
     <h2>{{(course$ | async as course).description}}</h2>
 
     <div *ngIf="details$ | async as lessonDetails else masterTmpl">
         <button (click)="backToMaster()"></button>
-        <lesson-details [lesson]="lessonDetails"></lesson-details>    
+        <lesson-details [lesson]="lessonDetails"></lesson-details>
     </div>
 
     <ng-template #masterTmpl>
@@ -1335,6 +1373,7 @@ export interface Lesson {
 ```
 
 ### lesson-details.component.html
+
 ```html
 <h3>{{lesson.description}}</h3>
 <h5>{{lesson.duration}}</h5>
@@ -1346,6 +1385,7 @@ export interface Lesson {
 ```
 
 ### safeUrl.pipe.ts
+
 ```ts
 @Pipe({
     name: 'safeUrl'
@@ -1361,6 +1401,7 @@ export class SafeUrlPipe extends PipeTransform {
 ```
 
 ### lessons-list.component.html
+
 ```html
 <table class="table lessons-list card card-strong"
     *ngIf="lessons else loadingLessons">
@@ -1383,6 +1424,7 @@ export class SafeUrlPipe extends PipeTransform {
 ```
 
 ### lessons-list.component.ts
+
 ```ts
 export class LessonsListComponent {
     @Input() lessons: Lesson[];
@@ -1396,13 +1438,14 @@ export class LessonsListComponent {
 ```
 
 ### course.component.html
+
 ```html
 <div class="course-md">
     <h2>{{(course$ | async as course).description}}</h2>
 
     <div *ngIf="details$ | async as lessonDetails else masterTmpl">
         <button (click)="backToMaster()"></button>
-        <lesson-details [lesson]="lessonDetails"></lesson-details>    
+        <lesson-details [lesson]="lessonDetails"></lesson-details>
     </div>
 
     <ng-template #masterTmpl>
@@ -1416,9 +1459,10 @@ export class LessonsListComponent {
 ```
 
 ### course.component.ts
+
 ```ts
 export class CourseComponent extends OnInit {
-    
+
     @Input() id: number;
 
     course$: Observable<Course>;
@@ -1446,7 +1490,6 @@ export class CourseComponent extends OnInit {
 }
 ```
 
-
 ## Error Handling
 
 Handling error is as important as handling success because of the real world situations like server error or unavailable, newtwork issue, going offline, etc. At times, error handling is not given equal importance due to ignorance to various error scenarios that can occur in real world apps.
@@ -1459,6 +1502,7 @@ Handling error is as important as handling success because of the real world sit
 > branch: error-handling
 
 ### lessons.service.ts
+
 ```ts
 export class LessonsService {
 
@@ -1503,9 +1547,10 @@ export class LessonsService {
 ```
 
 ### course.component.ts
+
 ```ts
 export class CourseComponent extends OnInit {
-    
+
     @Input() id: number;
 
     course$: Observable<Course>;
@@ -1553,6 +1598,7 @@ export class CourseComponent extends OnInit {
 ```
 
 ### messages.services.ts
+
 ```ts
 export class MessagesService {
 
@@ -1568,6 +1614,7 @@ export class MessagesService {
 ```
 
 ### messages.component.ts
+
 ```ts
 export class MessagesComponent implements OnInit {
 
@@ -1576,7 +1623,7 @@ export class MessagesComponent implements OnInit {
     constructor(messagesService: MessagesService) {}
 
     ngOnInit() {
-        this.errors$ = this.messagesService.$errors; 
+        this.errors$ = this.messagesService.$errors;
     }
 
     close() {
@@ -1586,6 +1633,7 @@ export class MessagesComponent implements OnInit {
 ```
 
 ### messages.component.html
+
 ```html
 <div clsas="messages-frame" *ngIf="(messages$ | async as messages).length > 0">
     <div class="messages messages-error">
@@ -1601,6 +1649,7 @@ export class MessagesComponent implements OnInit {
 > branch: loading-indicator
 
 ### router.config.ts
+
 ```ts
 export const routerConfig = [
     // ...
@@ -1616,6 +1665,7 @@ export const routerConfig = [
 ```
 
 ### course-detail.resolver.ts
+
 ```ts
 @Injectable()
 export class CourseDetailResolver implements Resolve<[Course, Lesson[]]> {
@@ -1636,6 +1686,7 @@ export class CourseDetailResolver implements Resolve<[Course, Lesson[]]> {
 ```
 
 ### course-detail.component.ts
+
 ```ts
 export class CourseDetailComponent implements OnInit {
     //Local Observable
@@ -1654,10 +1705,10 @@ export class CourseDetailComponent implements OnInit {
 }
 ```
 
-
 ## Global Loading Indicator
 
 ### loading.compoent.html
+
 ```html
 <div class="loading-indicator" *ngIf="($loading | async)">
     <img src="/images/loading.gif" />
@@ -1665,6 +1716,7 @@ export class CourseDetailComponent implements OnInit {
 ```
 
 ### loading.component.ts
+
 ```ts
 export class LoadingComponent implements OnInit {
 
@@ -1681,14 +1733,14 @@ export class LoadingComponent implements OnInit {
 }
 ```
 
-
-## Pre Save a Form Draft:
+## Pre Save a Form Draft
 
 Data entered by user can be persisted as draft without an explicit save draft button. This can be very well done in reactive way using form as an observable. `form.valueChanges()` returns an observable which we can subscribe to to save valid drafts.
 
 > branch: form-draft-save
 
 ### create-lesson.component.ts
+
 ```ts
 export class CreateLessonComponent extends OnInit {
 
@@ -1723,6 +1775,7 @@ export class CreateLessonComponent extends OnInit {
 ```
 
 ### create-lesson.component.html
+
 ```html
 <div class="screen-container">
     <h2>Create New Lesson</h2>
