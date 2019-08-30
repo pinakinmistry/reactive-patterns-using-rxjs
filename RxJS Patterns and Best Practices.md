@@ -374,7 +374,8 @@ export interface Observer {
 }
 ```
 
-**Observable:** A stream that we can `subscribe` to and `unsubscribe` from once we are don't want to observe.
+
+**Observable:** A stream that we can `subscribe` to and `unsubscribe` from once we don't want to observe.
 
 ```ts
 export interface Observable {
@@ -382,6 +383,7 @@ export interface Observable {
     unsubscribe(obs: Observer);
 }
 ```
+
 
 **Subject:** Subject is a producer of data/event. This way it implements both Observer and Observable so that it can `next()` new data **privately** as a producer and provide public interface to subscribe and unsubsribe.
 
