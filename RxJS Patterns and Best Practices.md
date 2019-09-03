@@ -78,13 +78,39 @@ Imperative programming is difficult to support modern use cases due to below dra
 - Spaghetti code
 - Unpredictable
 
-
 ## Lessons ToDo App Using Imperative Approach
 
 Let's implement Lessons ToDo App using imperative approach with a global event bus that will provide a communication channel between producer (Subject) of data and consumers (Observers) of that data.
 
+### Producer
+
+- EventBusExperimentsComponent
+
+### Consumers
+
+- LessonsListComponent
+- LessonsCounterComponent
+
 > branch: custom-events-2
 > TODO: Image of UI
+
+### event-bus-experiments.component.html
+
+```html
+<div class="course-container">
+
+    <h2> Event Bus Experiments</h2>
+
+    <lessons-counter></lessons-counter>
+
+    <lessons-list></lessons-list>
+
+    <input #input>
+
+    <button class="button button-highlight"
+        (click)="addLesson(input.value)">Add Lesson</button>
+</div>
+```
 
 ### Data Model: lesson.ts
 
@@ -109,7 +135,7 @@ import * as _ from 'lodash';
 // Custom Events
 export const LESSONS_LIST_AVAILABLE = 'LESSONS_LIST_AVAILABLE';
 export const ADD_NEW_LESSON = 'ADD_NEW_LESSON';
-// ... many more events like these
+// ... there can be many more custom events like these
 
 export interface Observer {
     // Get notified with new data
@@ -123,7 +149,7 @@ interface Subject {
     // Accepts an observer that no longer needs to be notified on given eventType
     unsubscribeObserver(eventType:string, obs:Observer);
 
-    // Notifies all observers of given eventType with new data
+    // Notifies all observers of given eventType with given data
     notifyObservers(eventType:string, data:any);
 }
 
@@ -164,30 +190,12 @@ class EventBus implements Subject {
 export const globalEventBus = new EventBus();
 ```
 
-### event-bus-experiments.component.html
+## Problems in Individual Components
 
-```html
-<div class="course-container">
-
-    <h2> Event Bus Experiments</h2>
-
-    <lessons-counter></lessons-counter>
-
-    <lessons-list></lessons-list>
-
-    <input #input>
-
-    <button class="button button-highlight"
-        (click)="addLesson(input.value)">Add Lesson</button>
-</div>
-```
-
-## Problems in Individual Components:
-
-- Local State
-- Local initialization
-- Local updates/mutations
-- Notifying updates
+- Local state
+- Local state initialization
+- Local state updates/mutations
+- Notifying updates to other components
 - Sharing state by reference
 - Updates shared without notification
 - No clear data ownership
@@ -199,6 +207,7 @@ export const globalEventBus = new EventBus();
 ```ts
 import {Component, OnInit} from '@angular/core';
 import {globalEventBus, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "./eventbus.service";
+// Mock lessons as if sent by backend
 import {testLessons} from "../shared/model/test-lessons";
 
 @Component({
@@ -217,18 +226,20 @@ export class EventBusExperimentsComponent implements OnInit {
 
         // Notify all subscribed observers about lessons just initialized
         // Note that testLessons is notified to all observers by reference instead of by value
+        // This causes tight coupling and side effects
         globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE,
             testLessons);
 
         setTimeout(() => {
+            // Mock new lesson sent by backend
             // Local state updated and notified to all subscribed observers
             this.lessons.push({
                 id: Math.random(),
                 description: 'New lesson arriving from backend'
             });
-            // LessonsListComponents gets notified even if we comment out below line.
-            // because it is using reference to EventBusExperimentsComponent's lessons
-            // in its notify method
+            // LessonsListComponents and LessonsCounterComponent gets notified
+            // even if we comment out below line because it is using reference
+            // to EventBusExperimentsComponent's lessons in its notify method
             globalEventBus.notifyObservers(LESSONS_LIST_AVAILABLE, this.lessons);
         }, 5000);
     }
@@ -267,8 +278,8 @@ export class LessonsListComponent implements Observer {
         // Subscribe to new lesson being added in future to update the local lessons list
         globalEventBus.subscribeObserver(ADD_NEW_LESSON, {
             notify: lessonText => {
-                // What this.lesson is pointing to, LessonsListComponent's or
-                // EventBusExperimentsComponent's lessons?
+                // this.lessons here is pointing to EventBusExperimentsComponent's lessons (local state)
+                // as it is shared by reference
                 this.lessons.push({
                     id: Math.random(),
                     description: lessonText
@@ -325,7 +336,8 @@ export class LessonsListComponent implements Observer {
 
 ```ts
 import { Component, OnInit } from '@angular/core';
-import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON} from "../event-bus-experiments/eventbus.service";
+import {globalEventBus, Observer, LESSONS_LIST_AVAILABLE, ADD_NEW_LESSON}
+    from "../event-bus-experiments/eventbus.service";
 import {Lesson} from "../shared/model/lesson";
 
 @Component({
@@ -354,6 +366,8 @@ export class LessonsCounterComponent implements Observer {
     }
 }
 ```
+
+> **Even LessonsListComponents is mutating the shared state causing mixed data ownership, tight coupling, speghetti code and hard to predict side effects**
 
 ## Reactive Approach
 
