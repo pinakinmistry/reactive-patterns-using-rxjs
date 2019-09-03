@@ -367,14 +367,16 @@ export class LessonsCounterComponent implements Observer {
 }
 ```
 
-> **Even LessonsListComponents is mutating the shared state causing mixed data ownership, tight coupling, speghetti code and hard to predict side effects**
+> **Even LessonsListComponents is mutating the shared state causing mixed data ownership, tight coupling, spaghetti code and hard to predict side effects**
 
-## Reactive Approach
+## Reactive Approach Using Streams
 
-1. Well defined data ownership
-2. Separate subscribe/unsubscribe observers from emit data/notify observers
-3. Notify observers should be private
-4. Make data as something that observers can subscribe to to observe changes and get notified about it
+1. Notify observers should be private to data owner
+2. `Stream`line data ownership using `Subject` and `Observable` as 2 different interfaces on producer side
+3. `Subject` is private interface for producer to emit data/notify observers
+4. `Observable` is public interface of producer for observers to subscribe/unsubscribe
+
+> **Make data as something that observers can subscribe to, to observe changes and get notified about it**
 
 ## Observer, Observable and Subject - Nuts and Bolts of Reactive Programming
 
@@ -390,7 +392,6 @@ export interface Observer {
     error();
 }
 ```
-
 
 **Observable:** A stream that `Observer` can observe using `subscribe` and later `unsubscribe` once done.
 
@@ -734,7 +735,6 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 }
 ```
 
-
 ## More Reactive Patterns
 
 > branch: stateless-services
@@ -890,7 +890,7 @@ export class HomeComponent implements OnInit {
 
 ## Observable Service
 
-- Stateful with state in private BehaviorSubject
+- Stateful with state in private `BehaviorSubject`
 
 > branch: observable-data-service
 
