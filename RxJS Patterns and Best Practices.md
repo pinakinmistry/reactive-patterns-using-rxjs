@@ -371,11 +371,11 @@ export class LessonsCounterComponent implements Observer {
 
 ## Reactive Approach Using Streams
 
-Mutating state and notifying observers should be private to the data owner.
+Updating state and notifying observers should be private to the data owner.
 
 This can be achieved by separating the ability of emitting new data from subcribe/unsubscribe.
 
-1. `Stream`line data ownership using `Subject` and `Observable` as 2 different interfaces on producer side
+1. `Stream`line data ownership using `Subject` and `Observable` as 2 different interfaces
 2. `Subject` is private interface for producer to emit data/notify observers
 3. `Observable` is public interface for observers to subscribe/unsubscribe
 
@@ -386,6 +386,8 @@ This can be achieved by separating the ability of emitting new data from subcrib
 > branch: observable-pattern
 
 **Observer:** Consumer of data/event emitted by Subject using `next()`
+
+> `next` here is analogous to next function in NodeJS for what to do `next` on an event
 
 ```ts
 // Consumer
@@ -417,6 +419,8 @@ interface Subject extends Observer, Observable  {
 
 ## Observable, Observer and Subject in Action
 
+Let's implement `Subject` interface to maintain list of observers with `subscribe()` and `unsubscribe()` methods to add or remove observers in this list and `next()` method to notify these observers about next data.
+
 > branch: introduce-rxjs, prepare-lessons ???
 
 ### app-data.service.ts
@@ -440,13 +444,16 @@ class SubjectImplementation implements Subject {
     }
 }
 
-// Initialization
+// Initialization of lessons private to this service
 const lessons: Lesson[] = [];
 
 // Private Subject
 const lessonsListSubject = new SubjectImplementation();
 
 // Public Observable
+// Note how public subscribe and unsubscribe of Observable is
+// calling private subscribe and unsubscribe of Subject
+// This is how we hide the data ownership in Subject using Observable as its public interface
 export const lessonsList$: Observable = {
     subscribe: obs => {
         lessonsListSubject.subscribe(obs);
@@ -467,11 +474,15 @@ export function initializeLessonsList(newList: Lesson[]) {
 
 ## Refactoring: DataStore as Service
 
-> TODO: Notes
+Note that `lessons`, `lessonsListSubject`, `lessonsList$` and `initializeLessonsList` are closely related and should be combined together under a class say `DataStore`. In fact, we can add all the other methods like `addLesson`, `toggleLesson` and `deleteLesson` in this class.
 
 ### app-data.service.ts
 
 ```ts
+class SubjectImplementation implements Subject {
+    // ...
+}
+
 class DataStore {
     private lessons: Lesson[] = [];
     private lessonsListSubject = new SubjectImplementation();
@@ -500,11 +511,12 @@ class DataStore {
         this.broadcast();
     }
 
-    deleteLesson(deleted: Lesson) {
+    public deleteLesson(deleted: Lesson) {
         _.remove(this.lessons, lesson => lesson.id === deleted.id);
         this.broadcast();
     }
 
+    // Notifying observers is private to this service
     private broadcast() {
         this.lessonsListSubject.next(this.lessons);
     }
@@ -513,7 +525,9 @@ class DataStore {
 export const store = new DataStore();
 ```
 
-## Refactoring Imperative Style to Reactive Style
+## Refactoring Imperative Style to Reactive Style using DataStore service
+
+Let's replace global event bus with store in our components now.
 
 ### event-bus-experiments.component.ts
 
@@ -561,6 +575,7 @@ import {store, Observer} from "../event-bus-experiments/app-data.service";
   templateUrl: './lessons-counter.component.html',
   styleUrls: ['./lessons-counter.component.css']
 })
+// Implements Observer to get notified about next data
 export class LessonsCounterComponent implements Observer, OnInit {
 
     lessonsCounter = 0;
