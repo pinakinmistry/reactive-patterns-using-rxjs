@@ -371,10 +371,13 @@ export class LessonsCounterComponent implements Observer {
 
 ## Reactive Approach Using Streams
 
-1. Notify observers should be private to data owner
-2. `Stream`line data ownership using `Subject` and `Observable` as 2 different interfaces on producer side
-3. `Subject` is private interface for producer to emit data/notify observers
-4. `Observable` is public interface of producer for observers to subscribe/unsubscribe
+Mutating state and notifying observers should be private to the data owner.
+
+This can be achieved by separating the ability of emitting new data from subcribe/unsubscribe.
+
+1. `Stream`line data ownership using `Subject` and `Observable` as 2 different interfaces on producer side
+2. `Subject` is private interface for producer to emit data/notify observers
+3. `Observable` is public interface for observers to subscribe/unsubscribe
 
 > **Make data as something that observers can subscribe to, to observe changes and get notified about it**
 
@@ -385,7 +388,7 @@ export class LessonsCounterComponent implements Observer {
 **Observer:** Consumer of data/event emitted by Subject using `next()`
 
 ```ts
-// Separate ability of being notified or emitting new data (next) from subcribe/unsubscribe
+// Consumer
 export interface Observer {
     next(data: any);
     complete();
@@ -396,16 +399,18 @@ export interface Observer {
 **Observable:** A stream that `Observer` can observe using `subscribe` and later `unsubscribe` once done.
 
 ```ts
+// Public stream
 export interface Observable {
     subscribe(obs: Observer);
     unsubscribe(obs: Observer);
 }
 ```
 
-**Subject:** Subject is a producer of data/event. It extends both Observer and Observable so that it can produce/emit new data or event **privately** using `next()` and provides a **public** interface to `Observers` to subscribe and unsubsribe.
-
 ```ts
-// Subject is private so that only owner of data can emit new data
+// Subject is a producer of data/event.
+// It is private so that only owner of data can emit new data and notify observers
+// It extends both Observer and Observable so that it can produce/emit new data or event privately using `next()`
+// and provides a public interface to `Observers` to subscribe and unsubsribe.
 interface Subject extends Observer, Observable  {
 }
 ```
@@ -454,9 +459,10 @@ export const lessonsList$: Observable = {
 // Populate and Notify
 export function initializeLessonsList(newList: Lesson[]) {
     lessons = _.cloneDeep(newList);
+    // lessonsListSubject is private in this service
+    // so that no other component can emit data using next()
     lessonsListSubject.next(lessons);
 }
-
 ```
 
 ## Refactoring: DataStore as Service
