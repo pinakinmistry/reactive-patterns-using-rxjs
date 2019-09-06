@@ -693,6 +693,8 @@ store.subscribe(this);
 
 Let's now replace custom implementation of `Subject`, `Observable` and `Observer` by using these from RxJS.
 
+Note that we are using `BehaviorSubject` instead of `Subject` from RxJS. `BehaviorSubject` takes initial state as input and remembers last emitted state. With this feature, we don't need local state. We can get the latest state from using `getValue()` method. Another important benefit is that `Observers` subscribing late will still get notified with latest state even without call to `next()`.
+
 > branch: introduce-rxjs
 
 ### app-data.service.ts
