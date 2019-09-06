@@ -1216,6 +1216,7 @@ export class NewsletterComponent implements OnInit {
 
 ## Another Example: Paginated Table
 
+> TODO: UI
 > branch: lessons-pager
 
 ### all-lessons.component.html
@@ -1234,8 +1235,8 @@ export class NewsletterComponent implements OnInit {
     <h2>{{(course$ | async as course).description}}</h2>
 
     <div class="lessons-nav">
-        <button (click)="previousLessonsPage()">Previous</button>
-        <button (click)="nextLessonsPage()">Next</button>
+        <button (click)="previousLessons()">Previous</button>
+        <button (click)="nextLessons()">Next</button>
     </div>
     <lessons-list lessons="lesson$ | async"></lessons-list>
 </div>
@@ -1261,6 +1262,15 @@ export class CourseComponent extends OnInit {
         this.lessons$ = this.lessonsService.lessonsPage$;
         this.lessonsService.loadFirstPage(this.id);
     }
+
+    previousLessons() {
+        this.lessonsService.previous();
+    }
+
+    nextLessons() {
+        this.lessonsService.next();
+    }
+
 }
 ```
 
@@ -1332,7 +1342,7 @@ export class LessonsService {
 }
 ```
 
-### server.ts
+### server.ts (Server side)
 
 ```ts
 const bodyParser = require('body-parser');
@@ -1352,7 +1362,7 @@ app.listen(8090, () => {
 })
 ```
 
-### lessonsRoute.ts
+### lessonsRoute.ts (Server side)
 
 ```ts
 export function lessonsRoute(req, res) {
@@ -1411,8 +1421,8 @@ export interface Lesson {
 
     <ng-template #masterTmpl>
         <div class="lessons-nav">
-            <button (click)="previousLessonsPage()">Previous</button>
-            <button (click)="nextLessonsPage()">Next</button>
+            <button (click)="previousLessons()">Previous</button>
+            <button (click)="nextLessons()">Next</button>
         </div>
         <lessons-list lessons="lesson$ | async"></lessons-list>
     </ng-template>
@@ -1539,7 +1549,7 @@ export class CourseComponent extends OnInit {
 
 ## Error Handling
 
-Handling error is as important as handling success because of the real world situations like server error or unavailable, newtwork issue, going offline, etc. At times, error handling is not given equal importance due to ignorance to various error scenarios that can occur in real world apps.
+Handling error is as important as handling success because of the real world situations like server error or unavailable, network issue, going offline, etc. At times, error handling is not given equal importance due to ignorance to various error scenarios that can occur in real world apps.
 
 - Avoid `subject.error()` as it cannot emit values once in error
 - Avoid `subscribe()`ing at service level
