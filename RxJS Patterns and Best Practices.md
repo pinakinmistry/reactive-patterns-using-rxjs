@@ -607,6 +607,7 @@ import {store, Observer} from "../event-bus-experiments/app-data.service";
     templateUrl: './lessons-list.component.html',
     styleUrls: ['./lessons-list.component.css']
 })
+// Implements Observer to get notified about next data
 export class LessonsListComponent implements Observer, OnInit {
 
     lessons: Lesson[] = [];
@@ -683,12 +684,14 @@ export const store = new DataStore();
 ```ts
 ...
 // Change below
-// store.lessonsList$.subscribe(this);
+store.lessonsList$.subscribe(this);
 // to
 store.subscribe(this);
 ```
 
 ## Replacing custom implementation with RxJS (Reactive Extensions)
+
+Let's now replace custom implementation of `Subject`, `Observable` and `Observer` by using these from RxJS.
 
 > branch: introduce-rxjs
 
@@ -762,21 +765,25 @@ class LessonsListComponent implements Observer<Lesson[]>, OnInit {
 
 ### Problems with Services
 
-1. Local state
-2. Nested subscriptions
-3. Subscriptions
+1. Maintaining local state
+2. Nested subscriptions due to nested async event handling/API calls
+3. Maintaining subscriptions and later unsubscribe them
 4. Long lived observables causing memory leaks
 
 ## Stateless Service
 
 1. No local states
 2. No subscriptions
-3. Return observables
+3. Return observables directly instead of subscribing
+
+    ```ts
         return observableAPICall()
             .do(data => subject.next(data));
-4. Short lived observable by unsubscribing after first notification using first()
-5. Stateless services provide observables as streams of data/events that components can subscribe too.
-6. Avoid multiple calls to observable by ensuring it completes before emitting the value using publishLast().refCount()
+    ```
+
+4. Short lived observable by unsubscribing after first notification using `first()`
+5. Stateless services provide observables as streams of data/events that components can subscribe too
+6. Avoid multiple calls to observable by ensuring it completes before emitting the value using `publishLast().refCount()`
 
 ### courses.service.ts
 
