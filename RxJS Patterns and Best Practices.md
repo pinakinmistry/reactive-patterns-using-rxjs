@@ -920,7 +920,7 @@ export class HomeComponent implements OnInit {
 
 ## Observable Service
 
-- Stateful with state in private `BehaviorSubject`
+Sometime we do need state in service in form of local `Observable` that other components can subscribe to. For example logged in user needs to be maintained as a global state for entire application.
 
 > branch: observable-data-service
 
@@ -963,7 +963,7 @@ export class UserService {
 }
 ```
 
-### loginRoute.ts
+### loginRoute.ts (Server side)
 
 ```ts
 import {User} from '../app/shared/model/user';
@@ -1100,7 +1100,7 @@ export class CourseDetailHeaderComponent {
     @Input() lessons: Lesson[];
     @Input() firstName: string;
 
-    @Output() subbscribe = new EventEmitter();
+    @Output() subscribe = new EventEmitter();
 
     onSubscribe(email: string) {
         this.subscribe.emit(email);
