@@ -922,6 +922,7 @@ export class HomeComponent implements OnInit {
 
 Sometime we do need state in service in form of local `Observable` that other components can subscribe to. For example logged in user needs to be maintained as a global state for entire application.
 
+> TODO: UI screenshot
 > branch: observable-data-service
 
 ### user.ts
@@ -1064,7 +1065,7 @@ export class CourseDetailComponent implements OnInit {
         private route: ActivatedRoute,
         private coursesService: CoursesService,
         private newsLetterService: NewsLetterService,
-        private UserService: UserService,
+        private userService: UserService,
     ) {}
 
     ngOnInit() {
@@ -1134,7 +1135,9 @@ export class LoginComponent implements OnInit {
 }
 ```
 
-## Avoid Nested Subscription using switchMap()
+## Avoid Nested Subscription using `switchMap()`
+
+Nested subscriptions arise when we have sequence of async event handling like in case of API calls
 
 > branch: bubble-events
 
@@ -1150,7 +1153,7 @@ export class CourseDetailComponent implements OnInit {
         private route: ActivatedRoute,
         private coursesService: CoursesService,
         private newsLetterService: NewsLetterService,
-        private UserService: UserService,
+        private userService: UserService,
     ) {}
 
     ngOnInit() {
@@ -1181,7 +1184,7 @@ export class CourseDetailComponent implements OnInit {
 
 - Handler for custom event `subscribe` is passed from CourseDetailsComponent to NewsletterComponent thru HeaderComponent
 - Avoid nested event handlers by converting NewsletterComponent to a smart component by injecting UserService and NewsletterService in it directly
-- No property and event bindings in parent components
+- No property and event bindings in parent and intermediate components
 
 ### Newsletter.component.ts
 
