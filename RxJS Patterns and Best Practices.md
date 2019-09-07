@@ -1216,6 +1216,8 @@ export class NewsletterComponent implements OnInit {
 
 ## Another Example: Paginated Table
 
+Let's implement `lessons$` observable as a paginated table.
+
 > TODO: UI
 > branch: lessons-pager
 
@@ -1238,7 +1240,7 @@ export class NewsletterComponent implements OnInit {
         <button (click)="previousLessons()">Previous</button>
         <button (click)="nextLessons()">Next</button>
     </div>
-    <lessons-list lessons="lesson$ | async"></lessons-list>
+    <lessons-list lessons="lessons$ | async"></lessons-list>
 </div>
 ```
 
@@ -1300,7 +1302,9 @@ export class CoursesService {
 export class LessonsService {
 
     private courseId: number;
+    // Private Subject
     private subject = new BehaviorSubject<Lesson[]>([]);
+    // Public Observable
     lessonsPage$: Observable<Lesson[]> = this.subject.asObservable();
     currentPageNumber = 1;
 
@@ -1389,8 +1393,11 @@ export function lessonsRoute(req, res) {
 }
 ```
 
-## Master Detail Implementation using Observable
+## Master Details Implementation using Observable
 
+Let's implement `details$` observable as details. `lessons$` observable is the master list providing `click` handler to show details of lesson being clicked.
+
+> TODO: UI
 > branch: master-detail
 
 ```ts
@@ -1424,7 +1431,7 @@ export interface Lesson {
             <button (click)="previousLessons()">Previous</button>
             <button (click)="nextLessons()">Next</button>
         </div>
-        <lessons-list lessons="lesson$ | async"></lessons-list>
+        <lessons-list lessons="lessons$ | async"></lessons-list>
     </ng-template>
 </div>
 ```
@@ -1486,6 +1493,7 @@ export class SafeUrlPipe extends PipeTransform {
 export class LessonsListComponent {
     @Input() lessons: Lesson[];
 
+    // selected is the custom event emitted to notify parent CourseComponent to about selected lesson
     @Output() selected: EventEmitter<Lesson>;
 
     select(lesson) {
@@ -1510,7 +1518,7 @@ export class LessonsListComponent {
             <button (click)="previousLessons()">Previous</button>
             <button (click)="nextLessons()">Next</button>
         </div>
-        <lessons-list lessons="lesson$ | async" (selected)="selectDetails($event)"></lessons-list>
+        <lessons-list lessons="lessons$ | async" (selected)="selectDetails($event)"></lessons-list>
     </ng-template>
 </div>
 ```
@@ -1537,6 +1545,8 @@ export class CourseComponent extends OnInit {
         this.lessonsService.loadFirstPage(this.id);
     }
 
+    // selected lesson is passed to this method by LessonList using $event in html template like this
+    // (selected)="selectDetails($event)"
     selectDetails(lesson: Lesson) {
         this.details$ = this.coursesService.getLessonDetails(lesson.url);
     }
@@ -1699,7 +1709,6 @@ export class MessagesComponent implements OnInit {
     </div>
 </div>
 ```
-
 
 ## Router Data Prefetching
 
