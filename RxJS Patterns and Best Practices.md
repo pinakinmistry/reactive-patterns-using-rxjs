@@ -1395,7 +1395,7 @@ export function lessonsRoute(req, res) {
 
 ## Master Details Implementation using Observable
 
-Let's implement `details$` observable as details. `lessons$` observable is the master list providing `click` handler to show details of lesson being clicked.
+Let's implement `details$` observable to get details of a lesson. `lessons$` observable is the master list providing `click` handler to show details of lesson being clicked.
 
 > TODO: UI
 > branch: master-detail
@@ -1403,14 +1403,14 @@ Let's implement `details$` observable as details. `lessons$` observable is the m
 ```ts
 export interface Lesson {
     id:number;
-    description:string;
+    courseId?:string;
     seqNo:number;
     duration:string;
     url?:string;
     tags?:string;
     pro?:boolean;
+    description:string;
     longDescription:string;
-    courseId?:string;
     videoUrl?:string;
 }
 ```
@@ -1431,7 +1431,7 @@ export interface Lesson {
             <button (click)="previousLessons()">Previous</button>
             <button (click)="nextLessons()">Next</button>
         </div>
-        <lessons-list lessons="lessons$ | async"></lessons-list>
+        <lessons-list lessons="lessons$ | async" (selected)="selectDetails($event)"></lessons-list>
     </ng-template>
 </div>
 ```
@@ -1502,27 +1502,6 @@ export class LessonsListComponent {
 }
 ```
 
-### course.component.html
-
-```html
-<div class="course-md">
-    <h2>{{(course$ | async as course).description}}</h2>
-
-    <div *ngIf="details$ | async as lessonDetails else masterTmpl">
-        <button (click)="backToMaster()"></button>
-        <lesson-details [lesson]="lessonDetails"></lesson-details>
-    </div>
-
-    <ng-template #masterTmpl>
-        <div class="lessons-nav">
-            <button (click)="previousLessons()">Previous</button>
-            <button (click)="nextLessons()">Next</button>
-        </div>
-        <lessons-list lessons="lessons$ | async" (selected)="selectDetails($event)"></lessons-list>
-    </ng-template>
-</div>
-```
-
 ### course.component.ts
 
 ```ts
@@ -1566,6 +1545,7 @@ Handling error is as important as handling success because of the real world sit
 - Instead return `Observable<any>` using `do(data => subject.next(data))` from service
 - And `subscribe()` for data and error handling at component level
 
+> TODO: UI
 > branch: error-handling
 
 ### lessons.service.ts
@@ -1712,6 +1692,10 @@ export class MessagesComponent implements OnInit {
 
 ## Router Data Prefetching
 
+> TODO: UI
+
+We can pre fetch data before entering a route using `resolve` property in route configuration. `resolve` takes an object with key as the data property name and value as a resolver service that implements `Resolve` interface. The prefetched data then becomes available as a property on `route.data` observable.
+
 > branch: loading-indicator
 
 ### router.config.ts
@@ -1734,6 +1718,8 @@ export const routerConfig = [
 
 ```ts
 @Injectable()
+// CourseDetailResolver resolves to <[Course, Lesson[]]>, a tuple of type array
+// with required course at [0] and its lessons at [1]
 export class CourseDetailResolver implements Resolve<[Course, Lesson[]]> {
 
     constructor(
@@ -1745,6 +1731,8 @@ export class CourseDetailResolver implements Resolve<[Course, Lesson[]]> {
         state: RouterStateSnapshot
     ): Observable<[Course, Lesson[]]> {
         return this.coursesService.findCourseByUrl(route.params['id'])
+            // switchMap takes a function as 2nd argument that can
+            // return the resolved course and lessons
             .switchMap(course => this.coursesService.findLessonsForCourse(course.id),
                 (course, lessons) => [course, lessons]);
     }
@@ -1764,7 +1752,7 @@ export class CourseDetailComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-        // Avoid Nested Subscriptions using switchMap
+        // courses and lessons are resolved and available in this.route.data observable
         this.course$ = this.route.data.map(data => data['detail'][0]);
         this.lessons$ = this.route.data.map(data => data['detail'][1]);
     }
