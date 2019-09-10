@@ -1761,6 +1761,10 @@ export class CourseDetailComponent implements OnInit {
 
 ## Global Loading Indicator
 
+Global loading indicator can be implemented by using `router.events` observable. For a route with data prefetching, `RoutesRecognized` and `NavigationStart` can be used to observe whether route and its required data is still loading.
+
+> TODO: UI
+
 ### loading.compoent.html
 
 ```html
@@ -1781,6 +1785,8 @@ export class LoadingComponent implements OnInit {
     ) {}
 
     ngOnInit() {
+        // A route with data pre fetching can use RoutesRecognized and NavigationStart
+        // to observe whether route and its required data is still loading
         this.loading$ = this.router.events.map(event => event instanceof RoutesRecognized ||
             event instanceof NavigationStart);
     }
