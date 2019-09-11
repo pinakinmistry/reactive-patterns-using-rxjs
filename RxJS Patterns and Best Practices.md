@@ -2,7 +2,7 @@
 
 Modern Apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events).
 
-User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. make an app like a state machine going from one state next state on an event.
+User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. make app go from one state to next state on an event just like a state machine.
 
 > TODO: State machine diagram
 
@@ -10,6 +10,7 @@ These modern use cases require a modern approach of reactive programming in whic
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
+> TODO: Subscribe using bell icon image
 > We will see what is `subscribe()`, `Observable` and `next()` soon but before that, what is a stream?
 
 ## Everything is a Stream
