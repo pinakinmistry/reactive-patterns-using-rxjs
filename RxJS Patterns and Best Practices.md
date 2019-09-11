@@ -22,9 +22,7 @@ It is ongoing, untimely, short/long lived, endless flow which can be interrupted
 
 **Data, change in data, events, errors are streams too.**
 
-These streams are flowing in any application that we can observe and react to.
-
-In any application, there are producers where data/events originate and one or more consumers of that data/event that observe them and react to next incoming change.
+These streams are flowing in any application that we can observe and react to. There are producers where data/events originate and one or more consumers of that data/event that observe them and react to next incoming change.
 
 Let's see an example in action:
 
@@ -54,7 +52,7 @@ Imperative approach is step by step sequence of instructions like an algorithm. 
 
 Declarative approach focuses more on what needs to be done. It hides the implementation details with help of high level directives about what to do and delegating the how part to library or framework that does the heavy lifting of `how to do` well. This makes application code more consise and precise and easy to reason about.
 
-> AngularJS, Underscore, LoDash and D3 are some examples of such frameworks and libraries.
+> AngularJS, Underscore, LoDash, D3 are some examples of such frameworks and libraries.
 
 ## Reactive Approach
 
@@ -88,7 +86,7 @@ RxJS has a dedicated conference called RxJS Live. Follow @RxJSLive on Twitter.
 
 ## Drawbacks of Imperative/non Reactive Approach for handling streams
 
-Imperative programming is difficult to support modern use cases due to below drawbacks:
+Imperative programming is difficult due to below drawbacks:
 
 - Sharing data/state and its ownership
 - Copying data/state locally
@@ -133,7 +131,7 @@ Let's implement Lessons ToDo App using imperative approach with a global event b
 
     <lessons-list></lessons-list>
 
-    <input #input>
+    <input #input />
 
     <button class="button button-highlight"
         (click)="addLesson(input.value)">Add Lesson</button>
@@ -475,7 +473,8 @@ class SubjectImplementation implements Subject {
 // Initialization of lessons private to this service
 const lessons: Lesson[] = [];
 
-// Private Subject
+// lessonsListSubject is private in this service
+// so that no other component can emit data using next()
 const lessonsListSubject = new SubjectImplementation();
 
 // Public Observable
@@ -493,9 +492,9 @@ export const lessonsList$: Observable = {
 
 // Populate and Notify
 export function initializeLessonsList(newList: Lesson[]) {
+    // Deep cloning newList to avoid unintentional sharing of list with component
     lessons = _.cloneDeep(newList);
-    // lessonsListSubject is private in this service
-    // so that no other component can emit data using next()
+    // Notify all observers about new lessons list
     lessonsListSubject.next(lessons);
 }
 ```
@@ -523,6 +522,7 @@ class DataStore {
         unsubscribe: obs => this.lessonsListSubject.subscribe(obs),
     };
 
+    // Broadcast every mutation
     public initializeLessonsList(newList: Lesson[]) {
         this.lessons = _.cloneDeep(newList);
         this.broadcast();
@@ -544,7 +544,7 @@ class DataStore {
         this.broadcast();
     }
 
-    // Notifying observers is private to this service
+    // Common broadcast method
     private broadcast() {
         this.lessonsListSubject.next(this.lessons);
     }
@@ -721,7 +721,7 @@ store.subscribe(this);
 
 Let's now replace custom implementation of `Subject`, `Observable` and `Observer` by using these from RxJS.
 
-Note that we are using `BehaviorSubject` instead of `Subject` from RxJS. `BehaviorSubject` takes initial state as input and remembers last emitted state. With this feature, we don't need local state. We can get the latest state from using `getValue()` method. Another important benefit is that `Observers` subscribing late will still get notified with latest state even without call to `next()`.
+Note that we are using `BehaviorSubject` instead of `Subject` from RxJS. `BehaviorSubject` takes initial state as input and remembers last emitted state. With this feature, we don't need local state. We can get the latest state from `BehaviorSubject` using `getValue()` method. Another important benefit is that `Observers` subscribing late will still get notified with latest state even without call to `next()`.
 
 > branch: introduce-rxjs
 
@@ -1891,5 +1891,7 @@ export class CreateLessonComponent extends OnInit {
     </form>
 </div>
 ```
+
+## Always `unsubsribe()` once done
 
 ## Just Pipelines of Streams of Data and Observers Reacting to Change in Data
