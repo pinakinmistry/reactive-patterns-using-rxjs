@@ -1,10 +1,12 @@
-# What, Why and How RxJS with Reactive Patterns and Best Practices
+# Why, What and How RxJS with Reactive Patterns and Best Practices
 
 Modern Apps are becoming more and more engaging in terms of dynamic data/content and increased interactivity (user or system events).
 
-User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. are pushing modern apps to next level.
+User events like infinite scrolls, switching views, post/swipe/like/share/comments, etc. and system events like real time updates, buffering, auto play/pause, online/offline switchovers, notifications, background processing, etc. make an app like a state machine going from one state next state on an event.
 
-These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as continuous streams.
+> TODO: State machine diagram
+
+These modern use cases require a modern approach of reactive programming in which we react to data and events by treating them as continuous observable streams.
 
 **We just `subscribe()` to these `Observable` streams and react to `next()` event to handle the change.**
 
@@ -20,7 +22,11 @@ It is ongoing, untimely, short/long lived, endless flow which can be interrupted
 
 **Data, change in data, events, errors are streams too.**
 
-These streams are flowing in any application that we can observe and react to. Let's see an example in action:
+These streams are flowing in any application that we can observe and react to.
+
+In any application, there are producers where data/events originate and one or more consumers of that data/event that observe them and react to next incoming change.
+
+Let's see an example in action:
 
 > Copy below code in browser's devtools console and move your cursor over the page to see the logs as shown in following image
 
@@ -40,7 +46,21 @@ document.addEventListener('mousemove', function () {
 ```
 
 > TODO: Image of above console
-> These are endless streams until you close the browser window or unsubscribe to these events using `removeEventListener()`
+> These are endless streams until you close the browser window or `unsubscribe()` to these events using `removeEventListener()`
+
+## Imperative vs Declarative Approach
+
+Imperative approach is step by step sequence of instructions like an algorithm. It is focused more on `how to do` instead of `what to do` making code more verbose and difficult to read and understand.
+
+Declarative approach focuses more on what needs to be done. It hides the implementation details with help of high level directives about what to do and delegating the how part to library or framework that does the heavy lifting of `how to do` well. This makes application code more consise and precise and easy to reason about.
+
+> AngularJS, Underscore, LoDash and D3 are some examples of such frameworks and libraries.
+
+## Reactive Approach
+
+Reactive approach follows decalarive approach wherein we react to an event by providing what needs to be done when that event occurs. And then it keeps repeating the same whenever that event occurs making it reactive to change.
+
+> React, Angular, VueJS are few examples of such frameworks and libraries.
 
 ## What is RxJS
 
@@ -50,6 +70,8 @@ It provides elegant and powerful ways to establish continuous channels between p
 
 ## Why is more important than what and how
 
+**Why should we learn RxJS?**
+
 Imperative approach to handle streams of events, data, changes in data, error handling and recovery in these streams is very difficult.
 
 Due to asynchronous and continuous nature of stream, imperative approach leads to chaos in the code.
@@ -57,6 +79,12 @@ Due to asynchronous and continuous nature of stream, imperative approach leads t
 Thankfully, even chaos has some patterns that can be tackled in effective way.
 
 RxJS provides operators to handle these patterns.
+
+There are good reasons why RxJS is the defacto library in Angular framework. In fact, it is baked into many core components like `Form`, `Router`, `Route`, `Params`, `Http`, `HttpClient` etc. in Angular.
+
+RxJS has a dedicated conference called RxJS Live. Follow @RxJSLive on Twitter.
+
+> Look Ma what I found, RxJS!
 
 ## Drawbacks of Imperative/non Reactive Approach for handling streams
 
