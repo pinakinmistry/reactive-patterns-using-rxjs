@@ -30,7 +30,7 @@
     "core-js": "^2.4.1",
     "express": "^4.15.2",
     "firebase": "^5.5.5",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "promise-polyfill": "^6.0.2",
     "rxjs": "6.3.3",
     "rxjs-compat": "^6.0.0-rc.0",
